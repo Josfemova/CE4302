@@ -9,7 +9,7 @@ module register_file (
     output [127:0] rd2
 );
 
-  reg [31:0] sreg[24:0];
+  reg [31:0] sreg[23:0];
   reg [127:0] vreg[7:0];
 
   // selección de registros.

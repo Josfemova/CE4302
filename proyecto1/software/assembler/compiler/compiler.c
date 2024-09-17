@@ -57,9 +57,10 @@ const instructions inst[] = {
     {.func_name = "VXOR",       .func3 = 0b000, .op = 0b100, .func11 = 0b00000000000},
     {.func_name = "VROT32",     .func3 = 0b001, .op = 0b100, .func11 = 0b00000000000},
     {.func_name = "VAES_SUB",   .func3 = 0b000, .op = 0b100, .func11 = 0b00000000001},
-    {.func_name = "VAES_SHIFT", .func3 = 0b001, .op = 0b100, .func11 = 0b00000000001},
-    {.func_name = "VAES_MIX",   .func3 = 0b010, .op = 0b100, .func11 = 0b00000000001},
-    {.func_name = "VAES_WXOR",  .func3 = 0b011, .op = 0b100, .func11 = 0b00000000001},
+    {.func_name = "VAES_ISUB",  .func3 = 0b001, .op = 0b100, .func11 = 0b00000000001},
+    {.func_name = "VAES_SHIFT", .func3 = 0b010, .op = 0b100, .func11 = 0b00000000001},
+    {.func_name = "VAES_MIX",   .func3 = 0b011, .op = 0b100, .func11 = 0b00000000001},
+    {.func_name = "VAES_WXOR",  .func3 = 0b100, .op = 0b100, .func11 = 0b00000000001},
 };
 typedef struct {
   char* name;

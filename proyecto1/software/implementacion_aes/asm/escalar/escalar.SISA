@@ -16,17 +16,19 @@ start:
     MOV(arg0, t5);
     NOP;
     NOP;
-    CALL, get_sbox;
+    CALL, subbyte;
     CLIR, t1, 23;
     CLIR, t2, 44;
     NOP;
     NOP;
     NOP;  
     JMP, end;
+
+
 /* Sub rutina
-    arg0 - valor a reemplazar 
+    arg0 - valor a sustituir
 */
-get_sbox:
+subbyte:
     CLIR, t0, SBOX_BASE_ADDR;
     SLLI, t1, arg0, 2; // obtiene offset de mem a partir de valor
     SUM, t2, t0, t1; // direccion final
