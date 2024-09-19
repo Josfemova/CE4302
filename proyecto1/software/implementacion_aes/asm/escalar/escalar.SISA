@@ -1,7 +1,5 @@
 #include "../UTIL.SISA"
 
-#define SBOX_BASE_ADDR 0x4000
-#define RSBOX_BASE_ADDR 0x5000
 /*
 init:
     // NOPS dan tiempo de setup a memorias

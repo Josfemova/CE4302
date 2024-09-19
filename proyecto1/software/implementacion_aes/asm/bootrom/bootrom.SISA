@@ -1,0 +1,94 @@
+#include "../UTIL.SISA"
+
+#define OFFSET_CMD 0x100 
+#define OFFSET_CMD_ARG0 0x104 
+#define OFFSET_CMD_ARG1 0x108 
+#define OFFSET_CMD_ARG2 0x10c 
+#define OFFSET_LAST_STATUS 0x110 // 0 si todo bien, 1 si hay error 
+
+#define CMD_JMP_ADDR 1 /* ARG 0 contiene la dirección a saltar */
+#define CMD_PING 2 /* ARG 0 contiene cuantos ciclos se espera, ARG1 cuiantos PINGS */
+
+/* 64 instrucciones MAX */
+
+start:
+    /* Limpiar mem de comando, vectorial para usar menos mem*/
+    STV, zero, zero, OFFSET_CMD;
+
+    /*cargar datos*/
+    CLIR, g1, CMD_JMP_ADDR;
+    CLIR, g2, CMD_PING;
+check_cmd: 
+    LDM, g0, zero, OFFSET_CMD;
+    JIEQ, g0, zero, check_cmd; // no hay comando
+
+    CLIR, t0, STATUS_WAIT;
+    STM, t0, zero, OFFSET_LAST_STATUS;
+
+    /*cargar argumentos*/
+    LDM, arg0, zero, OFFSET_CMD_ARG0;
+    LDM, arg1, zero, OFFSET_CMD_ARG1;
+    LDM, arg2, zero, OFFSET_CMD_ARG2;
+    JIEQ, g0, g1, cmd_jmp_addr;
+    JIEQ, g0, g2, cmd_ping;
+    
+    CLIR, t0, STATUS_ERR;
+    STM, t0, zero, OFFSET_LAST_STATUS;
+
+    JMP, start; // comando no soportado
+
+cmd_jmp_addr:
+    JLRL, lr, arg0, 0; // saltar a donde me digan   
+    
+    CLIR, t0, STATUS_OK;
+    STM, t0, zero, OFFSET_LAST_STATUS;
+    JMP, start;
+
+
+cmd_ping:
+    MOV(t0, zero); // cantidad de blinks ejecutados
+    loop_rep:
+        MOV(t1, zero); // cantidad de 10 ciclos ejecutados
+        loop_toggle:
+            // 10 cycle delay min
+            NOP;
+            NOP;
+            NOP;
+            NOP;
+            NOP;
+            NOP;
+            NOP;
+            NOP;
+            SUMI, t0, t0, 1;
+            JILT, t1, arg0, loop_toggle;
+        
+        CLIR, t2, UART_BASE;
+        CLIR, t3, 'P';
+        STM, t3, t2, 0;
+        CLIR, t3, 'I';
+        STM, t3, t2, 0;
+        CLIR, t3, 'N';
+        STM, t3, t2, 0;
+        CLIR, t3, 'G';
+        STM, t3, t2, 0;
+
+        SUMI, t1, t1, 1;
+        JILT, t1, arg1, loop_rep;
+    
+
+    CLIR, t0, STATUS_OK;
+    STM, t0, zero, OFFSET_LAST_STATUS;
+
+    JMP, start;
+            
+
+
+
+
+
+
+
+
+
+
+

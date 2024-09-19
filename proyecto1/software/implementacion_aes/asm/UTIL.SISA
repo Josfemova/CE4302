@@ -1,10 +1,11 @@
 #ifndef UTIL_INCLUDE
 #define UTIL_INCLUDE
 
-#define ROM_BASE 0x0000
-#define RAM_BASE 0x1000
-#define STACK_START 0x1800
-#define STACK_END   0x1400
+#include "REGIONS.SISA"
+
+#define STATUS_WAIT 0
+#define STATUS_OK 1
+#define STATUS_ERR 2
 
 /* Funciones de utilidad */
 #define NOP SUM,zero,zero,zero
@@ -19,6 +20,10 @@
                  STM, rs, sp, 0; 
 #define POP(rs)  LDM, rs, sp, 0; \
                  SUMI, sp, sp, 4; 
+#define VPUSH(vrs) SUMI, sp, sp, -16; \
+                 STV, vrs, sp, 0; 
+#define VPOP(vrs)  LDV, vrs, sp, 0; \
+                 SUMI, sp, sp, 16; 
 
 #define TRUE 1
 #define FALSE 0

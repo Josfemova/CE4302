@@ -53,6 +53,16 @@ module top (
   wire reset;
   assign reset = SW[0];
   
+	assign LEDR[1] = clk;
+	assign LEDR[4] = reset;
+
+  seven_segment_driver seg0(.data_in(addr[3:0]),   .data_out(HEX0));
+  seven_segment_driver seg1(.data_in(addr[7:4]),   .data_out(HEX1));
+  seven_segment_driver seg2(.data_in(addr[11:8]),  .data_out(HEX2));
+  seven_segment_driver seg3(.data_in(addr[15:12]), .data_out(HEX3));
+  seven_segment_driver seg4(.data_in(addr[19:16]), .data_out(HEX4));
+  seven_segment_driver seg5(.data_in(addr[23:20]), .data_out(HEX5));
+  
   sisa_final dut(
 		.clk_clk(clk),                //          clk.clk
 		.instr_export_instr_if(addr),  // instr_export.instr_if
