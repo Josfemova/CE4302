@@ -212,7 +212,7 @@
   <parameter name="enPRInitMode" value="false" />
   <parameter name="enableDiffWidth" value="false" />
   <parameter name="initMemContent" value="true" />
-  <parameter name="initializationFileName">/home/josfemova-rs/REPOSITORIES/CE4302/proyecto1/software/implementacion_aes/asm/escalar/output_files/escalar.hex</parameter>
+  <parameter name="initializationFileName">/home/josfemova-rs/REPOSITORIES/CE4302/proyecto1/software/implementacion_aes/asm/bootrom/output_files/bootrom.hex</parameter>
   <parameter name="instanceID" value="inst" />
   <parameter name="memorySize" value="8192" />
   <parameter name="readDuringWriteMode" value="DONT_CARE" />
