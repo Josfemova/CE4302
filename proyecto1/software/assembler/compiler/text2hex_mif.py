@@ -40,7 +40,7 @@ for line in lines:
     #hex file 
     checksum = 4 + get_byte(addr, 1) + get_byte(addr,0) + get_byte(val, 3) + get_byte(val, 2) + get_byte(val,1) + get_byte(val,0)
     checksum = twos(checksum & 0xff)
-    text=f":04{addr:04X}00{val:08X}{checksum:02X}\n"
+    text=f":04{addr:04X}00{val:08X}{checksum & 0xFF:02X}\n"
     hexfile.write(text)
 
     addr += 1
