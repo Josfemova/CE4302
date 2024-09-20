@@ -23,15 +23,57 @@ module vector_alu #(
     input bit [3:0] alu_control,
     output logic [WIDTH-1:0] result
 );
+
+  wire [127:0] xor_res;
+  wire [127:0] vrot_res;
+  wire [127:0] subb_res;
+  wire [127:0] isubb_res;
+  wire [127:0] shiftrows_res;
+  wire [127:0] mixcols_res;
+  wire [127:0] kschxor_res;
+
+logic [127:0] opA;
+  
+  add_round_key xorinst(.state(opA), .round_key(op2), .new_state(xor_res));
+  vrot32 vrot32inst (.state_in(op1), .bits_to_rotate(op2), .state_out(vrot_res));
+  sub_bytes subbinst(.state_in(op1), .state_out(subb_res));
+  inv_sub_bytes isubbinst(.state_in(op1), .state_out(isubb_res));
+  shift_rows srinst(.state_in(op1), .state_out(shiftrows_res));
+  mix_columns mixcols(.state_in(op1), .state_out(mixcols_res));
+  key_schedule kschxor(.K(op1), .result(op2[31:0]), .round_key(kschxor_res));
+
+
   always @(*) begin
+    opA = op1;
     case (alu_control)
-      VALU_OP_XOR: result = op1 ^ op2;
-      VALU_OP_ROT: result = 128'hADE01234;
-      VALU_OP_AES_SUBBYTES : result = 128'hDEADBEEF;
-      VALU_OP_AES_INV_SUBBYTES : result = 128'hDEADBEEF;
-      VALU_OP_AES_SHIFTROWS: result = 128'hBADFA550;
-      VALU_OP_AES_MIX_COLUMNS: result = 128'h1BADBABE;
-      VALU_OP_AES_KEYSCHE_XOR: result = 128'hAABAAABA;
+      VALU_OP_XOR: 
+          result = xor_res;
+      VALU_OP_ROT: 
+          result = vrot_res;
+      VALU_OP_AES_SUBBYTES : 
+        begin
+          opA = subb_res;
+          result = xor_res;
+        end
+      VALU_OP_AES_INV_SUBBYTES : 
+        begin
+          opA = isubb_res;
+          result = xor_res;
+        end
+      VALU_OP_AES_SHIFTROWS: 
+        begin
+          opA = shiftrows_res;
+          result = xor_res;
+        end
+      VALU_OP_AES_MIX_COLUMNS: 
+        begin
+          opA = mixcols_res;
+          result = xor_res;
+        end
+      VALU_OP_AES_KEYSCHE_XOR: 
+        begin
+          result = kschxor_res;
+        end
       default: result = 0;  // div no implementada aun 
     endcase
   end
