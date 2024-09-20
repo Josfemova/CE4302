@@ -23,7 +23,7 @@ module shift_rows_tb;
         $display("Output: %h", state_out);
 
         // Prueba 2
-        state_in = 128'habcdef0123456789abcdef0123456789;
+        state_in = 128'hFFEEDDCC_BBAA9988_77665544_33221100;
         #10; 
 
         $display("Input:  %h", state_in);
