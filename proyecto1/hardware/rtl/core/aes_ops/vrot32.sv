@@ -1,5 +1,5 @@
 module vrot32 (
-    input logic [127:0] state_in,
+    input logic unsigned [127:0] state_in,
     input logic [127:0] bits_to_rotate,
     output logic [127:0] state_out
 );
