@@ -2,12 +2,10 @@
 #define REGIONS_INCLUDE
 
 #define IRAM_BASE 0x0000 // Instruction RAM
-#define IRAM_BOOTROM_END 0x114
-#define IRAM_ENC_HEADER_OFFSET 0x120
-#define IRAM_ENC_ROUDKEY_STORE 0x130
-#define IRAM_LOADABLE_CODE_ADDR 0x250 // 1388 instrucciones max
-#define IRAM_STACK_START 0x1ffc
-#define IRAM_STACK_END 0x1800
+#define IMEM_BOOTROM_END 0x24c
+#define IMEM_LOADABLE_CODE_ADDR 0x250 // 1388 instrucciones max
+#define STACK_START 0x2ffc
+#define STACK_END 0x2800
 
 // Perifericos
 #define UART_BASE 0x3000
@@ -17,11 +15,11 @@
 #define RAM_BASE 0x20000 // datos a encriptar
 
 
-#define IRAM_ENC_HDR_STATUS 0x120
-#define IRAM_ENC_HDR_OP 0x124 /*0 si es encriptar, otro valor de lo contrario*/
-#define IRAM_ENC_HDR_BLOCKS 0x128 /* Indica tamaño de datos en multiplos de 16 bytes */
-#define IRAM_ENC_HDR_AES_KEY 0x12c /* Ubicacion llave inicial */
-
+#define ENC_HDR_STATUS 0x2000
+#define ENC_HDR_OP 0x2004 /*0 si es encriptar, otro valor de lo contrario*/
+#define ENC_HDR_BLOCKS 0x2008 /* Indica tamaño de datos en multiplos de 16 bytes */
+#define ENC_HDR_AES_KEY 0x2010 /* Ubicacion llave inicial */
+#define ENC_DATA_AES_ROUNDKEY_LAST 0x20a0 /* Ubicación llave final */ 
 
 
 #endif

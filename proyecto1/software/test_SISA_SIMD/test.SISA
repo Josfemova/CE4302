@@ -1,6 +1,6 @@
 #include "UTIL.SISA"
 
-#define UART_BASE 0x2000
+#define UART_BASE 0x3000
 
 uart_test:
     CLIR, g0, UART_BASE; 
@@ -44,6 +44,8 @@ end:
     NOP;
     NOP;
     END_SIMUL;
+    MOV(lr, zero);
+    JBA;
     JLL,zero,end; 
 
 
