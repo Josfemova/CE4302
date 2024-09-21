@@ -118,6 +118,8 @@ module stage_decode (
 
   always @(posedge clk) begin
     if (ex_clear) begin
+      // debug 
+      ex_instr <= 0;
       // outputs de control unit
       ex_reg_write      <= 0;
       ex_mem_write      <= 0;

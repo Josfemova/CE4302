@@ -46,78 +46,6 @@ module core_top (
     input s_reset
 );
 
-  //! TODO: REGISTROS INTERNOS DE PC 
-  /* En buena teoria sería algo como
-    - cycleh (RO) Cuenta ciclos ejecutados, upper 32 bits
-    - cyclel (RO) Cuenta ciclos ejecutados, lower 32 bits 
-    - CLK_MODE (RW): Controla si solo puente el clock o se cambia por la señal de step
-    - STEPS (RW): Down counter. Ejecuta la cantidad de ciclos escritos 
-    - Stall counts?
-  */
-    
-    wire [4:0] s1_addr;
-    wire [4:0] s2_addr;
-    assign s1_addr = s1_address[6:2];
-    assign s2_addr = s2_address[6:2];
-
-    reg [63:0] cycle;
-    reg [31:0] manual_step_en = 32'b0;
-    reg [31:0] manual_steps;
-    reg [15:0][31:0] scratch_mem; // regs vacíos RW
-    wire [31:0][31:0] csrs_ro = {
-        scratch_mem,    // 0x40
-        128'b0,         // 0x30 - 0x34 - 0x38 - 0x3c
-        96'b0,          // 0x24 - 0x28 - 0x2c
-        instr_wb,       // 0x20
-        instr_mem,      // 0x1c
-        instr_ex,       // 0x18
-        instr_de,       // 0x14
-        instr_if,       // 0x10
-        manual_steps,   // 0xc
-        manual_step_en, // 0x8
-        cycle // 64 b   // 0x0 //0x4
-        };
-    
-    assign stall_all = (mem_stall_all || (manual_step_en[0] && manual_steps==0));
-    always @(posedge clk) begin 
-        if (reset) begin 
-            manual_step_en <= 0;
-            manual_steps <= 0;
-            cycle <= 0;
-            s1_readdata <= 1'b0;
-            s2_readdata <= 1'b0;
-        end else begin
-            cycle <= (stall_all) ? cycle : cycle+1; //aumentar contador de ciclos
-            if(manual_steps != 0) begin 
-                manual_steps <= manual_steps -1; //disminuir steps
-            end
-            if(s1_read) s1_readdata <= csrs_ro[s1_addr];
-            if(s2_read) s2_readdata <= csrs_ro[s2_addr];
-            // prioridad de escritura a s1
-            if(s1_write) begin 
-                case(s1_addr)
-                    default:
-                        if(s1_addr[4]) begin // scratch_mem
-                            scratch_mem[s1_addr[3:0]] <= s1_writedata;
-                        end 
-                endcase
-            end 
-            if(s2_write)begin
-                if (s1_addr != s2_addr) begin
-                    case(s2_addr)
-                        4'h2: manual_step_en <= s2_writedata;
-                        4'h3: manual_steps <= s2_writedata;
-                        default: begin 
-                            if(s2_addr[4]) begin // scratch_mem
-                                scratch_mem[s2_addr[3:0]] <= s2_writedata;
-                            end 
-                        end 
-                    endcase
-                end
-            end  
-        end
-    end 
-
   assign instr_memory_byteenable = 4'b1111;
   assign data_memory_byteenable = 4'b1111;
 
@@ -203,6 +131,34 @@ module core_top (
   wire [1:0] ex_op2_forward;
   wire stall_all;
 
+  // ========= Debugging ========/ 
+  wire clk_internal;
+  reg [63:0] cycle;
+  reg [31:0] manual_step_en = 32'b0;
+  reg [31:0] manual_steps;
+  reg [15:0][31:0] scratch_mem; // regs vacíos RW
+  wire halt_cpu = manual_step_en[0] && (manual_steps==0);
+  wire [4:0] s1_addr = s1_address[6:2];
+  wire [4:0] s2_addr = s2_address[6:2];
+  wire [31:0][31:0] csrs_ro = {
+      scratch_mem,    // 0x40
+      128'b0,         // 0x30 - 0x34 - 0x38 - 0x3c
+      96'b0,          // 0x24 - 0x28 - 0x2c
+      instr_wb,       // 0x20
+      instr_mem,      // 0x1c
+      instr_ex,       // 0x18
+      instr_de,       // 0x14
+      instr_if,       // 0x10
+      manual_steps,   // 0xc
+      manual_step_en, // 0x8
+      cycle // 64 b   // 0x0 //0x4
+      };
+
+  assign clk_internal = halt_cpu ? 1'b1 : clk; // hay que forzarlo a 1 si se apaga
+  /*always @(posedge clk) begin 
+    halt_cpu <= manual_step_en[0] && (manual_steps==0);
+  end*/ 
+
   assign instr_memory_addr = if_pc_next_instr_mem;
   assign instr_memory_read_en = ~if_stall;
   //! OJO EL HACK UUUUFFFF 
@@ -212,13 +168,25 @@ module core_top (
   // Si el ciclo anterior hubo un deassert de read_en, se escoge el valor del 
   // latch para sacar la instrucción que va al IF en vez de lo que se lee en el
   // puerto de memoria 
-  reg [31:0] saved_instruction;
+  reg [31:0] saved_instruction = 32'b0;
   reg [31:0] use_current_instr_mem_readdata;
-  reg [31:0] last_reset;
+  reg last_reset;
+  reg last_halt;
   always @(posedge clk) begin 
-    last_reset <= reset;
-    use_current_instr_mem_readdata <= instr_memory_read_en | last_reset;
-    saved_instruction <= if_instr_rd;
+    if(reset) begin 
+        last_reset<=0;
+        last_halt<=0;
+    end else begin 
+        last_reset <= reset;
+        last_halt <= halt_cpu;
+        // magia a ver si arreglo el halt
+        use_current_instr_mem_readdata <= (instr_memory_read_en | last_reset) && (~halt_cpu);
+        if(~last_halt) begin 
+            saved_instruction <= if_instr_rd;
+        end else begin 
+            saved_instruction <= saved_instruction;
+        end
+    end
   end
   assign if_instr_rd = (use_current_instr_mem_readdata)? instr_memory_readdata : saved_instruction;
   //assign instr_memory_read_en = 1'b1;
@@ -232,8 +200,10 @@ module core_top (
   assign instr_mem = mem_instr;
   assign instr_wb = wb_instr;
 
+  
+
   stage_instruction_fetch instf (
-      .clk(clk),
+      .clk(clk_internal),
       .reset(reset),
       .reset_vector_addr(reset_vector_addr),
       .de_clear(de_clear),
@@ -249,7 +219,7 @@ module core_top (
   );
 
   stage_decode de (
-      .clk(clk),
+      .clk(clk_internal),
       .ex_clear(ex_clear),
       .ex_stall(ex_stall),
       .de_instr(de_instr),
@@ -284,7 +254,7 @@ module core_top (
   );
 
   stage_execute ex (
-      .clk(clk),
+      .clk(clk_internal),
       .reset(reset),
       .mem_clear(mem_clear),
       .mem_stall(mem_stall),
@@ -332,7 +302,7 @@ module core_top (
   assign mem_read_result  = data_memory_readdata;
 
   stage_memory mem (
-      .clk(clk),
+      .clk(clk_internal),
       .reset(reset),
       .wb_clear(wb_clear),
       .wb_stall(wb_stall),
@@ -396,6 +366,47 @@ module core_top (
       .ex_op2_forward(ex_op2_forward)
   );
 
+  assign stall_all = mem_stall_all;
+  
+  
+  always @(posedge clk) begin 
+      if (reset) begin 
+          manual_step_en <= 0;
+          manual_steps <= 0;
+          cycle <= 0;
+          s1_readdata <= 1'b0;
+          s2_readdata <= 1'b0;
+      end else begin
+          cycle <= (halt_cpu) ? cycle : cycle+1; //aumentar contador de ciclos
+          if(manual_step_en[0] && (manual_steps != 0)) begin 
+              manual_steps <= manual_steps -1; //disminuir steps
+          end
+          if(s1_read) s1_readdata <= csrs_ro[s1_addr];
+          if(s2_read) s2_readdata <= csrs_ro[s2_addr];
+          // prioridad de escritura a s1
+          if(s1_write) begin 
+              case(s1_addr)
+                  default:
+                      if(s1_addr[4]) begin // scratch_mem
+                          scratch_mem[s1_addr[3:0]] <= s1_writedata;
+                      end 
+              endcase
+          end 
+          if(s2_write)begin
+              if (s1_addr != s2_addr) begin
+                  case(s2_addr)
+                      4'h2: manual_step_en <= s2_writedata;
+                      4'h3: manual_steps <= s2_writedata;
+                      default: begin 
+                          if(s2_addr[4]) begin // scratch_mem
+                              scratch_mem[s2_addr[3:0]] <= s2_writedata;
+                          end 
+                      end 
+                  endcase
+              end
+          end  
+      end
+  end 
 
 
 

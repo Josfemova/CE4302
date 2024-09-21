@@ -416,9 +416,18 @@ set_location_assignment PIN_AE12 -to SW[9]
 
 
 set_global_assignment -name EDA_SIMULATION_TOOL "ModelSim-Altera (SystemVerilog)"
+set_global_assignment -name SYSTEMVERILOG_FILE ../rtl/seven_segment_driver.sv
+set_global_assignment -name QSYS_FILE sisa_final.qsys
+set_global_assignment -name SYSTEMVERILOG_FILE ../rtl/system_tb.sv
+set_global_assignment -name SYSTEMVERILOG_FILE ../rtl/top.sv
+set_global_assignment -name TCL_SCRIPT_FILE ../../software/jtag_probe/dhawkins/jtag_server_cmds.tcl
+set_global_assignment -name TCL_SCRIPT_FILE ../../software/jtag_probe/dhawkins/jtag_server.tcl
+set_global_assignment -name TCL_SCRIPT_FILE ../../software/jtag_probe/dhawkins/altera_jtag_to_avalon_stp.tcl
+set_global_assignment -name TCL_SCRIPT_FILE sisa_final/synthesis/submodules/hps_sdram_p0_pin_assignments.tcl
 set_global_assignment -name EDA_TEST_BENCH_FILE ../rtl/system_tb.sv -section_id system_tb
 set_global_assignment -name EDA_TEST_BENCH_FILE sisa_final/simulation/sisa_final.sip -section_id system_tb
 set_global_assignment -name EDA_TEST_BENCH_FILE sisa_final/simulation/sisa_final.v -section_id system_tb
+set_global_assignment -name EDA_TEST_BENCH_FILE sisa_final/simulation/submodules/add_round_key.sv -section_id system_tb
 set_global_assignment -name EDA_TEST_BENCH_FILE sisa_final/simulation/submodules/altera_avalon_packets_to_master.v -section_id system_tb
 set_global_assignment -name EDA_TEST_BENCH_FILE sisa_final/simulation/submodules/altera_avalon_sc_fifo.v -section_id system_tb
 set_global_assignment -name EDA_TEST_BENCH_FILE sisa_final/simulation/submodules/altera_avalon_st_bytes_to_packets.v -section_id system_tb
@@ -454,14 +463,20 @@ set_global_assignment -name EDA_TEST_BENCH_FILE sisa_final/simulation/submodules
 set_global_assignment -name EDA_TEST_BENCH_FILE sisa_final/simulation/submodules/core_top.sv -section_id system_tb
 set_global_assignment -name EDA_TEST_BENCH_FILE sisa_final/simulation/submodules/hazard_unit.sv -section_id system_tb
 set_global_assignment -name EDA_TEST_BENCH_FILE sisa_final/simulation/submodules/imm_extend.sv -section_id system_tb
+set_global_assignment -name EDA_TEST_BENCH_FILE sisa_final/simulation/submodules/inv_sub_bytes.sv -section_id system_tb
 set_global_assignment -name EDA_TEST_BENCH_FILE sisa_final/simulation/submodules/jump_cond_ctrl.sv -section_id system_tb
+set_global_assignment -name EDA_TEST_BENCH_FILE sisa_final/simulation/submodules/key_schedule.sv -section_id system_tb
 set_global_assignment -name EDA_TEST_BENCH_FILE sisa_final/simulation/submodules/load_store_unit.sv -section_id system_tb
+set_global_assignment -name EDA_TEST_BENCH_FILE sisa_final/simulation/submodules/mix_columns.sv -section_id system_tb
 set_global_assignment -name EDA_TEST_BENCH_FILE sisa_final/simulation/submodules/register_file.sv -section_id system_tb
+set_global_assignment -name EDA_TEST_BENCH_FILE sisa_final/simulation/submodules/shift_rows.sv -section_id system_tb
+set_global_assignment -name EDA_TEST_BENCH_FILE sisa_final/simulation/submodules/sisa_final_core_ram.v -section_id system_tb
+set_global_assignment -name EDA_TEST_BENCH_FILE sisa_final/simulation/submodules/sisa_final_ext_ram.v -section_id system_tb
 set_global_assignment -name EDA_TEST_BENCH_FILE sisa_final/simulation/submodules/sisa_final_instr_mem.v -section_id system_tb
-set_global_assignment -name EDA_TEST_BENCH_FILE sisa_final/simulation/submodules/sisa_final_master_0.v -section_id system_tb
-set_global_assignment -name EDA_TEST_BENCH_FILE sisa_final/simulation/submodules/sisa_final_master_0_b2p_adapter.sv -section_id system_tb
-set_global_assignment -name EDA_TEST_BENCH_FILE sisa_final/simulation/submodules/sisa_final_master_0_p2b_adapter.sv -section_id system_tb
-set_global_assignment -name EDA_TEST_BENCH_FILE sisa_final/simulation/submodules/sisa_final_master_0_timing_adt.sv -section_id system_tb
+set_global_assignment -name EDA_TEST_BENCH_FILE sisa_final/simulation/submodules/sisa_final_jtag.v -section_id system_tb
+set_global_assignment -name EDA_TEST_BENCH_FILE sisa_final/simulation/submodules/sisa_final_jtag_b2p_adapter.sv -section_id system_tb
+set_global_assignment -name EDA_TEST_BENCH_FILE sisa_final/simulation/submodules/sisa_final_jtag_p2b_adapter.sv -section_id system_tb
+set_global_assignment -name EDA_TEST_BENCH_FILE sisa_final/simulation/submodules/sisa_final_jtag_timing_adt.sv -section_id system_tb
 set_global_assignment -name EDA_TEST_BENCH_FILE sisa_final/simulation/submodules/sisa_final_mm_interconnect_0.v -section_id system_tb
 set_global_assignment -name EDA_TEST_BENCH_FILE sisa_final/simulation/submodules/sisa_final_mm_interconnect_0_avalon_st_adapter.v -section_id system_tb
 set_global_assignment -name EDA_TEST_BENCH_FILE sisa_final/simulation/submodules/sisa_final_mm_interconnect_0_avalon_st_adapter_error_adapter_0.sv -section_id system_tb
@@ -479,7 +494,6 @@ set_global_assignment -name EDA_TEST_BENCH_FILE sisa_final/simulation/submodules
 set_global_assignment -name EDA_TEST_BENCH_FILE sisa_final/simulation/submodules/sisa_final_mm_interconnect_2_router_001.sv -section_id system_tb
 set_global_assignment -name EDA_TEST_BENCH_FILE sisa_final/simulation/submodules/sisa_final_mm_interconnect_2_rsp_demux.sv -section_id system_tb
 set_global_assignment -name EDA_TEST_BENCH_FILE sisa_final/simulation/submodules/sisa_final_mm_interconnect_2_rsp_mux.sv -section_id system_tb
-set_global_assignment -name EDA_TEST_BENCH_FILE sisa_final/simulation/submodules/sisa_final_ram.v -section_id system_tb
 set_global_assignment -name EDA_TEST_BENCH_FILE sisa_final/simulation/submodules/sisa_final_rs232_0.v -section_id system_tb
 set_global_assignment -name EDA_TEST_BENCH_FILE sisa_final/simulation/submodules/sisa_final_rsbox.v -section_id system_tb
 set_global_assignment -name EDA_TEST_BENCH_FILE sisa_final/simulation/submodules/sisa_final_sbox.v -section_id system_tb
@@ -488,12 +502,7 @@ set_global_assignment -name EDA_TEST_BENCH_FILE sisa_final/simulation/submodules
 set_global_assignment -name EDA_TEST_BENCH_FILE sisa_final/simulation/submodules/stage_instruction_fetch.sv -section_id system_tb
 set_global_assignment -name EDA_TEST_BENCH_FILE sisa_final/simulation/submodules/stage_memory.sv -section_id system_tb
 set_global_assignment -name EDA_TEST_BENCH_FILE sisa_final/simulation/submodules/stage_writeback.sv -section_id system_tb
-set_global_assignment -name SYSTEMVERILOG_FILE ../rtl/seven_segment_driver.sv
-set_global_assignment -name QSYS_FILE sisa_final.qsys
-set_global_assignment -name SYSTEMVERILOG_FILE ../rtl/system_tb.sv
-set_global_assignment -name SYSTEMVERILOG_FILE ../rtl/top.sv
-set_global_assignment -name TCL_SCRIPT_FILE ../../software/jtag_probe/dhawkins/jtag_server_cmds.tcl
-set_global_assignment -name TCL_SCRIPT_FILE ../../software/jtag_probe/dhawkins/jtag_server.tcl
-set_global_assignment -name TCL_SCRIPT_FILE ../../software/jtag_probe/dhawkins/altera_jtag_to_avalon_stp.tcl
-set_global_assignment -name TCL_SCRIPT_FILE sisa_final/synthesis/submodules/hps_sdram_p0_pin_assignments.tcl
+set_global_assignment -name EDA_TEST_BENCH_FILE sisa_final/simulation/submodules/sub_bytes.sv -section_id system_tb
+set_global_assignment -name EDA_TEST_BENCH_FILE sisa_final/simulation/submodules/vector_alu.sv -section_id system_tb
+set_global_assignment -name EDA_TEST_BENCH_FILE sisa_final/simulation/submodules/vrot32.sv -section_id system_tb
 set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -section_id Top

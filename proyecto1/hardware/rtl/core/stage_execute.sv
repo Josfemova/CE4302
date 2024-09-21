@@ -125,6 +125,8 @@ module stage_execute (
 
   always @(posedge clk) begin
     if (mem_clear) begin
+      //debug
+      mem_instr <= 0;
       // outputs de control unit
       mem_reg_write        <= 0;
       mem_mem_write        <= 0;
