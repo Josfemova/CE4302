@@ -1,10 +1,10 @@
 #include "../UTIL.SISA"
 
-#define OFFSET_CMD 0x100 
-#define OFFSET_CMD_ARG0 0x104 
-#define OFFSET_CMD_ARG1 0x108 
-#define OFFSET_CMD_ARG2 0x10c 
-#define OFFSET_LAST_STATUS 0x110 // 0 si todo bien, 1 si hay error 
+#define OFFSET_CMD 0x7040 
+#define OFFSET_CMD_ARG0 0x7044 
+#define OFFSET_CMD_ARG1 0x7048 
+#define OFFSET_CMD_ARG2 0x704c 
+#define OFFSET_LAST_STATUS 0x7050 // 0 si todo bien, 1 si hay error 
 
 #define CMD_JMP_ADDR 1 /* ARG 0 contiene la dirección a saltar */
 #define CMD_PING 2 /* ARG 0 contiene cuantos ciclos se espera, ARG1 cuiantos PINGS */
@@ -12,6 +12,15 @@
 /* 64 instrucciones MAX */
 
 start:
+    CLIR, t2, UART_BASE;
+    CLIR, t3, 'H';
+    STM, t3, t2, 0;
+    CLIR, t3, 'O';
+    STM, t3, t2, 0;
+    CLIR, t3, 'L';
+    STM, t3, t2, 0;
+    CLIR, t3, 'A';
+    STM, t3, t2, 0;
     /* Limpiar mem de comando, vectorial para usar menos mem*/
     STV, zero, zero, OFFSET_CMD;
 
@@ -59,7 +68,7 @@ cmd_ping:
             NOP;
             NOP;
             NOP;
-            SUMI, t0, t0, 1;
+            SUMI, t1, t1, 1;
             JILT, t1, arg0, loop_toggle;
         
         CLIR, t2, UART_BASE;
@@ -72,13 +81,13 @@ cmd_ping:
         CLIR, t3, 'G';
         STM, t3, t2, 0;
 
-        SUMI, t1, t1, 1;
-        JILT, t1, arg1, loop_rep;
+        SUMI, t0, t0, 1;
+        JILT, t0, arg1, loop_rep;
     
 
     CLIR, t0, STATUS_OK;
     STM, t0, zero, OFFSET_LAST_STATUS;
-
+    END_SIMUL;
     JMP, start;
             
 

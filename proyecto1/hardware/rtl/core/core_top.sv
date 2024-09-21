@@ -31,14 +31,14 @@ module core_top (
 
     // cpu_regs mem slave 1 (para cpu a sí mismo)
     // mismo clock del cpu
-    input [5:0] s1_address,
+    input [6:0] s1_address,
     input s1_read,
     output reg [31:0] s1_readdata,
     input s1_write,
     input [31:0] s1_writedata,
     
     // cpu_regs mem slave 2 (para jtag)
-    input [5:0] s2_address,
+    input [6:0] s2_address,
     input s2_read,
     output reg [31:0] s2_readdata,
     input s2_write,
@@ -54,52 +54,64 @@ module core_top (
     - STEPS (RW): Down counter. Ejecuta la cantidad de ciclos escritos 
     - Stall counts?
   */
-    wire clk_step;
-    wire clk_core_internal;
     
-    reg [64:0] cycle;
-    reg [31:0] manual_step_en;
+    wire [4:0] s1_addr;
+    wire [4:0] s2_addr;
+    assign s1_addr = s1_address[6:2];
+    assign s2_addr = s2_address[6:2];
+
+    reg [63:0] cycle;
+    reg [31:0] manual_step_en = 32'b0;
     reg [31:0] manual_steps;
-    wire [3:0][31:0] csrs_ro = {
-        instr_wb,
-        instr_mem,
-        instr_ex,
-        instr_de,
-        instr_if, 
-        manual_steps, 
-        manual_step_en, 
-        cycle // 64 bits
+    reg [15:0][31:0] scratch_mem; // regs vacíos RW
+    wire [31:0][31:0] csrs_ro = {
+        scratch_mem,    // 0x40
+        128'b0,         // 0x30 - 0x34 - 0x38 - 0x3c
+        96'b0,          // 0x24 - 0x28 - 0x2c
+        instr_wb,       // 0x20
+        instr_mem,      // 0x1c
+        instr_ex,       // 0x18
+        instr_de,       // 0x14
+        instr_if,       // 0x10
+        manual_steps,   // 0xc
+        manual_step_en, // 0x8
+        cycle // 64 b   // 0x0 //0x4
         };
     
-    assign clk_step = (manual_steps == 0) ? 1'b0 : clk; //mantener en bajo o alto?
-    assign clk_core_internal = manual_step_en ? clk_step : clk;
-
+    assign stall_all = (mem_stall_all || (manual_step_en[0] && manual_steps==0));
     always @(posedge clk) begin 
         if (reset) begin 
-            cycle <= 0;
             manual_step_en <= 0;
             manual_steps <= 0;
+            cycle <= 0;
             s1_readdata <= 1'b0;
             s2_readdata <= 1'b0;
         end else begin
-            cycle <= cycle+1; //aumentar contador de ciclos
+            cycle <= (stall_all) ? cycle : cycle+1; //aumentar contador de ciclos
             if(manual_steps != 0) begin 
                 manual_steps <= manual_steps -1; //disminuir steps
             end
-            if(s1_read) s1_readdata <= csrs_ro[s1_address[5:2]];
-            if(s2_read) s2_readdata <= csrs_ro[s2_address[5:2]];
+            if(s1_read) s1_readdata <= csrs_ro[s1_addr];
+            if(s2_read) s2_readdata <= csrs_ro[s2_addr];
+            // prioridad de escritura a s1
             if(s1_write) begin 
-                case(s1_address[5:2])
-                    4'h2: manual_step_en <= s1_writedata;
-                    4'h3: manual_steps <= s1_writedata;
+                case(s1_addr)
+                    default:
+                        if(s1_addr[4]) begin // scratch_mem
+                            scratch_mem[s1_addr[3:0]] <= s1_writedata;
+                        end 
                 endcase
             end 
-            // prioridad de escritura a s1
             if(s2_write)begin
-                if (s1_address[5:2] != s2_address[5:2]) begin
-                    case(s2_address[5:2])
+                if (s1_addr != s2_addr) begin
+                    case(s2_addr)
                         4'h2: manual_step_en <= s2_writedata;
                         4'h3: manual_steps <= s2_writedata;
+                        default: begin 
+                            if(s2_addr[4]) begin // scratch_mem
+                                scratch_mem[s2_addr[3:0]] <= s2_writedata;
+                            end 
+                        end 
                     endcase
                 end
             end  
@@ -162,6 +174,7 @@ module core_top (
   wire mem_vector_op;
   wire [127:0] mem_alu_result;
   wire [127:0] mem_write_data;
+  wire mem_stall_all;
   wire [31:0] mem_pc_plus_4;
   wire [127:0] mem_imm_ext;
   wire [4:0] mem_rd;
@@ -202,7 +215,7 @@ module core_top (
   reg [31:0] saved_instruction;
   reg [31:0] use_current_instr_mem_readdata;
   reg [31:0] last_reset;
-  always @(posedge clk_core_internal) begin 
+  always @(posedge clk) begin 
     last_reset <= reset;
     use_current_instr_mem_readdata <= instr_memory_read_en | last_reset;
     saved_instruction <= if_instr_rd;
@@ -220,7 +233,7 @@ module core_top (
   assign instr_wb = wb_instr;
 
   stage_instruction_fetch instf (
-      .clk(clk_core_internal),
+      .clk(clk),
       .reset(reset),
       .reset_vector_addr(reset_vector_addr),
       .de_clear(de_clear),
@@ -236,7 +249,7 @@ module core_top (
   );
 
   stage_decode de (
-      .clk(clk_core_internal),
+      .clk(clk),
       .ex_clear(ex_clear),
       .ex_stall(ex_stall),
       .de_instr(de_instr),
@@ -271,7 +284,7 @@ module core_top (
   );
 
   stage_execute ex (
-      .clk(clk_core_internal),
+      .clk(clk),
       .reset(reset),
       .mem_clear(mem_clear),
       .mem_stall(mem_stall),
@@ -319,7 +332,7 @@ module core_top (
   assign mem_read_result  = data_memory_readdata;
 
   stage_memory mem (
-      .clk(clk_core_internal),
+      .clk(clk),
       .reset(reset),
       .wb_clear(wb_clear),
       .wb_stall(wb_stall),
@@ -336,7 +349,7 @@ module core_top (
       .mem_read_result(mem_read_result),
       .mem_data_memory_addr(data_memory_addr),
       .mem_data_memory_writedata(data_memory_writedata),
-      .mem_stall_all(stall_all),
+      .mem_stall_all(mem_stall_all),
       .wb_instr(wb_instr),
       .wb_reg_write(wb_reg_write),
       .wb_result_src(wb_result_src),

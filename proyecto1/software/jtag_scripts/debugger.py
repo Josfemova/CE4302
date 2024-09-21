@@ -1,17 +1,20 @@
 # se conecta al jtag y manipula los regs de control del cpu 
 
 import cmd, sys
+import memory_interface as mi
 
 class Debugger(cmd.Cmd):
     intro = 'Welcome to the SISA debugger.\n'
     prompt = '(sisa-dbg) '
     file = None
 
+
     # ----- basic turtle commands -----
     def do_dummy(self, arg):
         'Dummy command'
         print(arg.split())
     
+    """
     def precmd(self, line):
         line = line.lower()
         if self.file and 'playback' not in line:
@@ -21,6 +24,7 @@ class Debugger(cmd.Cmd):
         if self.file:
             self.file.close()
             self.file = None
+    """
 
 if __name__ == '__main__':
     Debugger().cmdloop()

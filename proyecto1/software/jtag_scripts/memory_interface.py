@@ -1,16 +1,18 @@
 IRAM_LOADABLE_CODE_ADDR = 0x250
 RAM_BASE = 0x20000 # datos a encriptar
 IRAM_ENC_HDR_STATUS = 0x120
-IRAM_ENC_HDR_OP = 0x124  # 0 si es encriptar, otro valor de lo contrario*/
+IRAM_ENC_HDR_OP = 0x124  # 0 si es encriptar, otro valor de lo contrario
 IRAM_ENC_HDR_BLOCKS =0x128 # Indica tamaño de datos en multiplos de 16 bytes 
 IRAM_ENC_HDR_AES_KEY =0x12c # Ubicacion llave inicial 
-OFFSET_CMD =0x100 
-OFFSET_CMD_ARG0 =0x104 
-OFFSET_CMD_ARG1 =0x108 
-OFFSET_CMD_ARG2 =0x10c 
-OFFSET_LAST_STATUS =0x110 # 0 si todo bien, 1 si hay error 
-CMD_JMP_ADDR =1 #ARG 0 contiene la dirección a saltar */
-CMD_PING =2 # ARG 0 contiene cuantos ciclos se espera, ARG1 cuiantos PINGS */
+
+OFFSET_CMD =0x7040 
+OFFSET_CMD_ARG0 =0x7044 
+OFFSET_CMD_ARG1 =0x7048 
+OFFSET_CMD_ARG2 =0x704c 
+OFFSET_LAST_STATUS =0x7050 # 0 si todo bien, 1 si hay error 
+
+CMD_JMP_ADDR =1 # ARG 0 contiene la dirección a saltar
+CMD_PING =2 # ARG 0 contiene cuantos ciclos se espera, ARG1 cuiantos PINGS
 
 import socket
 from time import sleep
@@ -34,7 +36,7 @@ def read_mem(socket, addr):
     return val
 
 def write_mem(socket, addr, data):
-    socket.sendall(wr_cmd.format(addr, data).encode(()))
+    socket.sendall(wr_cmd.format(addr, data).encode())
     pass
 
 def load_code(socket, txt_file):
@@ -49,6 +51,7 @@ def load_code(socket, txt_file):
             val = int(line.strip('\n'), 2) 
             # escribir cada 32 bits
             write_mem(socket, IRAM_LOADABLE_CODE_ADDR + (i<<2), val)
+            i+=1
     write_mem(socket, OFFSET_CMD_ARG0, IRAM_LOADABLE_CODE_ADDR)
     write_mem(socket, OFFSET_CMD, CMD_JMP_ADDR)
 
@@ -63,6 +66,7 @@ def load_data(socket, data_txt_file, aes_key, op):
             val = int(line.strip('\n'), 2) 
             # escribir cada 32 bits
             write_mem(socket, RAM_BASE + (i<<2), val)
+            i+=1
 
         if(i%4 != 0):
             error("Datos provistos requieren padding!")
@@ -89,7 +93,7 @@ def extract_data(socket, txt_file, blocks):
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 s.connect((HOST, PORT))
 
-for i range (0, 40):
-    print(f"val at {i*4}: {read_mem(s, i*4)}")
+for i in range(0, 40):
+    print(f"val at {i*4:08X}: {read_mem(s, i*4):08X}")
 
-s.close()
+#s.close()
