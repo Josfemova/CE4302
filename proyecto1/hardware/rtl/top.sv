@@ -36,19 +36,13 @@ module top (
     input [9:0] SW
 );
 
-  // KEY 0 es clk manual 
-  wire debug_mode;
-  assign debug_mode = SW[1];
-
-  wire manual_clk;
-  assign manual_clk = KEY[0];
 
 	wire [31:0] addr;
 
 	assign LEDR[0] = addr[0];
 
   wire clk;
-  assign clk = (debug_mode)?  CLOCK_50 : manual_clk;
+  assign clk = CLOCK_50;
 
   wire reset;
   assign reset = SW[0];
