@@ -95,42 +95,38 @@ void shiftRows(uint8_t *state) {
 
 //________________/ Mix Columns /__________________________________________
 
-// Multiplicacion en GF(2^8)
-uint8_t gf_mult(uint8_t a, uint8_t b) {
+uint8_t GF_Mult(uint8_t a, uint8_t b) {
     uint8_t result = 0;
     uint8_t temp = a;
 
     for (int i = 0; i < 8; i++) {
-        if (b & (1 << i)) {
-            result ^= temp; // Sumar en GF(2^8)
+        if (b & 1) {
+            result ^= temp;  // Sumar a result si el bit menos significativo de b es 1
         }
-        // Multiplicacion por 2, desplazamiento a la izquierda
-        temp <<= 1;
-        // Si el bit más significativo es 1, reduce
-        if (temp & 0x100) {
-            temp ^= 0x1b; // Reducir con el polinomio irreducible
+        uint8_t high_bit_set = temp & 0x80;  // Verificar si el bit más alto está encendido
+        temp <<= 1;  // Desplazar a la izquierda (multiplicar por 2)
+        if (high_bit_set) {
+            temp ^= 0x1B;  // Reducir si es necesario con el polinomio irreducible
         }
+        b >>= 1;  // Desplazar a la derecha para procesar el siguiente bit de b
     }
-    
+
     return result;
 }
 
 void mixColumns(uint8_t *state) {
-    uint8_t tmp[4];
+    uint8_t temp[16];  // Arreglo temporal para almacenar el resultado
 
-    // Recorrer las 4 columnas del estado
-    for (int i = 0; i < 4; i++) {
+    for (int j = 0; j < 4; j++) {  // Para cada columna
+        temp[j * 4 + 0] = GF_Mult(0x02, state[j * 4 + 0]) ^ GF_Mult(0x03, state[j * 4 + 1]) ^ state[j * 4 + 2] ^ state[j * 4 + 3];
+        temp[j * 4 + 1] = state[j * 4 + 0] ^ GF_Mult(0x02, state[j * 4 + 1]) ^ GF_Mult(0x03, state[j * 4 + 2]) ^ state[j * 4 + 3];
+        temp[j * 4 + 2] = state[j * 4 + 0] ^ state[j * 4 + 1] ^ GF_Mult(0x02, state[j * 4 + 2]) ^ GF_Mult(0x03, state[j * 4 + 3]);
+        temp[j * 4 + 3] = GF_Mult(0x03, state[j * 4 + 0]) ^ state[j * 4 + 1] ^ state[j * 4 + 2] ^ GF_Mult(0x02, state[j * 4 + 3]);
+    }
 
-        // Guardar la columna actual
-        tmp[0] = state[i * 4];
-        tmp[1] = state[i * 4 + 1];
-        tmp[2] = state[i * 4 + 2];
-        tmp[3] = state[i * 4 + 3];
-
-        state[i * 4]     = gf_mult(tmp[0], 2) ^ gf_mult(tmp[1], 3) ^ tmp[2] ^ tmp[3];
-        state[i * 4 + 1] = tmp[0] ^ gf_mult(tmp[1], 2) ^ gf_mult(tmp[2], 3) ^ tmp[3];
-        state[i * 4 + 2] = tmp[0] ^ tmp[1] ^ gf_mult(tmp[2], 2) ^ gf_mult(tmp[3], 3);
-        state[i * 4 + 3] = gf_mult(tmp[0], 3) ^ tmp[1] ^ tmp[2] ^ gf_mult(tmp[3], 2);
+    // Copiar el resultado de temp al estado original
+    for (int i = 0; i < 16; i++) {
+        state[i] = temp[i];
     }
 }
 

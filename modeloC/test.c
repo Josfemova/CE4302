@@ -11,11 +11,18 @@ void printState(uint8_t *state){
 
 int main() {
     // Valor de prueba para state
-    uint8_t state[16] = {
+    /**uint8_t state[16] = {
         0x32, 0x88, 0x31, 0xe0,
         0x43, 0x5a, 0x31, 0x37,
         0xf6, 0x30, 0x98, 0x07,
         0xa8, 0x8d, 0xa1, 0x2c
+    };**/
+
+    uint8_t state[16] = {
+        0x87, 0x6e, 0x46, 0xa6, //columna 1
+        0xf2, 0x4c, 0xe7, 0x8c, //columna 2
+        0x4d, 0x90, 0x4a, 0xd8, //columna 3
+        0xe7, 0xec, 0xc3, 0x95  //columna 4
     };
 
     // Valor de prueba para key
@@ -29,7 +36,7 @@ int main() {
     printf("State Original: ");
     printState(state);
 
-    printf("Key: ");
+    /**printf("Key: ");
     printState(key);
 
     printf("Add Round Key: ");
@@ -46,7 +53,7 @@ int main() {
 
     printf("Shift Rows: ");
     shiftRows(state);
-    printState(state);
+    printState(state);**/
 
     printf("Mix Columns: ");
     mixColumns(state);
