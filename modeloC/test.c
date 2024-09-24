@@ -1,13 +1,6 @@
 #include "aes.c"
 #include <stdio.h>
-
-void printState(uint8_t *state){
-    for (int i = 0; i < 16; i++) {
-        printf("%02x ", state[i]);
-    }
-    printf("\n");
-
-}
+#include <unistd.h>
 
 int main() {
     // Valor de prueba para state
@@ -36,10 +29,10 @@ int main() {
     printf("State Original: ");
     printState(state);
 
-    /**printf("Key: ");
+    printf("Key: ");
     printState(key);
 
-    printf("Add Round Key: ");
+    /**printf("Add Round Key: ");
     addRoundKey(state, key);
     printState(state);
 
@@ -53,10 +46,20 @@ int main() {
 
     printf("Shift Rows: ");
     shiftRows(state);
-    printState(state);**/
+    printState(state);
 
     printf("Mix Columns: ");
     mixColumns(state);
+    printState(state);
+
+    printf("Key Expansion: ");
+    uint8_t roundKeys[176];
+    keyExpansion(key, roundKeys);
+    printExpandedKeys(roundKeys, 44);**/ 
+
+
+    printf("AES Encrypt: ");
+    aes_encript(state, key);
     printState(state);
 
     return 0;

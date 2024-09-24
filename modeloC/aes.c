@@ -1,6 +1,12 @@
 #include <stdio.h>
 #include <stdint.h>
 
+// Rcon (Constantes de ronda)
+static const uint8_t rcon[10] = {
+    0x01, 0x02, 0x04, 0x08, 0x10,
+    0x20, 0x40, 0x80, 0x1B, 0x36
+};
+
 static const uint8_t sbox[256] = {
     0x63, 0x7C, 0x77, 0x7B, 0xF2, 0x6B, 0x6F, 0xC5, 0x30, 0x01, 0x67, 0x2B, 0xFE, 0xD7, 0xAB, 0x76,
     0xCA, 0x82, 0xC9, 0x7D, 0xFA, 0x59, 0x47, 0xF0, 0xAD, 0xD4, 0xA2, 0xAF, 0x9C, 0xA4, 0x72, 0xC0,
@@ -103,7 +109,7 @@ uint8_t GF_Mult(uint8_t a, uint8_t b) {
         if (b & 1) {
             result ^= temp;  // Sumar a result si el bit menos significativo de b es 1
         }
-        uint8_t high_bit_set = temp & 0x80;  // Verificar si el bit más alto está encendido
+        uint8_t high_bit_set = temp & 0x80;  // Verificar si el bit mas alto esta encendido
         temp <<= 1;  // Desplazar a la izquierda (multiplicar por 2)
         if (high_bit_set) {
             temp ^= 0x1B;  // Reducir si es necesario con el polinomio irreducible
@@ -129,6 +135,94 @@ void mixColumns(uint8_t *state) {
         state[i] = temp[i];
     }
 }
+
+void printState(uint8_t *state){
+    for (int i = 0; i < 16; i++) {
+        printf("%02x ", state[i]);
+    }
+    printf("\n");
+
+}
+
+//______________/ Key Expansion /___________________
+
+// Rotacion de palabras
+void rotWord(uint8_t *word) {
+    uint8_t temp = word[0];
+    for (int i = 0; i < 3; i++) {
+        word[i] = word[i + 1];
+    }
+    word[3] = temp;
+}
+
+// Sustitucion de bytes usando la S-box
+void subWord(uint8_t *word) {
+    for (int i = 0; i < 4; i++) {
+        word[i] = sbox[word[i]];
+    }
+}
+
+// Expansion de clave
+void keyExpansion(const uint8_t *key, uint8_t *expandedKeys) {
+    uint32_t temp;
+    int i = 0;
+
+    // Inicializar las primeras palabras con la clave original
+    while (i < 4) {
+        expandedKeys[i * 4] = key[i * 4];
+        expandedKeys[i * 4 + 1] = key[i * 4 + 1];
+        expandedKeys[i * 4 + 2] = key[i * 4 + 2];
+        expandedKeys[i * 4 + 3] = key[i * 4 + 3];
+        i++;
+    }
+
+    // Generar el resto de las claves
+    i = 4;
+    while (i < 4 * (10 + 1)) {
+        temp = (expandedKeys[(i - 1) * 4] << 24) | 
+               (expandedKeys[(i - 1) * 4 + 1] << 16) | 
+               (expandedKeys[(i - 1) * 4 + 2] << 8) | 
+               expandedKeys[(i - 1) * 4 + 3];
+
+        if (i % 4 == 0) {
+            rotWord((uint8_t *)&temp);   // Rota la palabra
+            subWord((uint8_t *)&temp);   // Sustituye con S-box
+            temp ^= (rcon[i / 4 - 1] << 24); // Agrega la constante de ronda
+        }
+
+        expandedKeys[i * 4] = expandedKeys[(i - 4) * 4] ^ (temp >> 24);
+        expandedKeys[i * 4 + 1] = expandedKeys[(i - 4) * 4 + 1] ^ (temp >> 16);
+        expandedKeys[i * 4 + 2] = expandedKeys[(i - 4) * 4 + 2] ^ (temp >> 8);
+        expandedKeys[i * 4 + 3] = expandedKeys[(i - 4) * 4 + 3] ^ temp;
+
+        i++;
+    }
+}
+
+//_______________________/ AES ENCRYPT /______________________________
+
+void aes_encript(uint8_t *state, uint8_t *key) {
+    uint8_t roundKeys[176];  // Almacenar 11 claves de ronda (11 * 16 = 176 bytes)
+    keyExpansion(key, roundKeys);  // expand a la key original
+
+    // Ronda inicial: AddRoundKey
+    addRoundKey(state, roundKeys); 
+
+    // 9 rondas de AES 
+    for (int round = 1; round <= 9; round++) {
+        subBytes(state);                // Sustituye los bytes usando S-box
+        shiftRows(state);               // Rotacion de filas
+        mixColumns(state);              // Mezcla de columnas
+        addRoundKey(state, roundKeys + (round * 16));  // Agregar clave de ronda
+    }
+
+    // Ronda final (sin mixColumns)
+    subBytes(state);
+    shiftRows(state);
+    addRoundKey(state, roundKeys + (10 * 16));  // Usar la última clave de ronda
+}
+
+
 
 
 
