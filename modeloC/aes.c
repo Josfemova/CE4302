@@ -1,5 +1,7 @@
 #include <stdio.h>
 #include <stdint.h>
+#include <string.h>
+
 
 // Rcon (Constantes de ronda)
 static const uint8_t rcon[10] = {
@@ -44,6 +46,16 @@ static const uint8_t inv_sbox[256] = {
     0xA0, 0xE0, 0x3B, 0x4D, 0xAE, 0x2A, 0xF5, 0xB0, 0xC8, 0xEB, 0xBB, 0x3C, 0x83, 0x53, 0x99, 0x61,
     0x17, 0x2B, 0x04, 0x7E, 0xBA, 0x77, 0xD6, 0x26, 0xE1, 0x69, 0x14, 0x63, 0x55, 0x21, 0x0C, 0x7D
 };
+
+//________________/ Print State /__________________________________________
+
+void printState(uint8_t *state){
+    for (int i = 0; i < 16; i++) {
+        printf("%02x ", state[i]);
+    }
+    printf("\n");
+
+}
 
 //________________/ Add Round Key /__________________________________________
 
@@ -136,15 +148,23 @@ void mixColumns(uint8_t *state) {
     }
 }
 
-void printState(uint8_t *state){
-    for (int i = 0; i < 16; i++) {
-        printf("%02x ", state[i]);
-    }
-    printf("\n");
+void invMixColumns(uint8_t *state) {
+    uint8_t temp[16];  
 
+    for (int j = 0; j < 4; j++) {  // Para cada columna
+        temp[j * 4 + 0] = GF_Mult(0x0E, state[j * 4 + 0]) ^ GF_Mult(0x0B, state[j * 4 + 1]) ^ GF_Mult(0x0D, state[j * 4 + 2]) ^ GF_Mult(0x09, state[j * 4 + 3]);
+        temp[j * 4 + 1] = GF_Mult(0x09, state[j * 4 + 0]) ^ GF_Mult(0x0E, state[j * 4 + 1]) ^ GF_Mult(0x0B, state[j * 4 + 2]) ^ GF_Mult(0x0D, state[j * 4 + 3]);
+        temp[j * 4 + 2] = GF_Mult(0x0D, state[j * 4 + 0]) ^ GF_Mult(0x09, state[j * 4 + 1]) ^ GF_Mult(0x0E, state[j * 4 + 2]) ^ GF_Mult(0x0B, state[j * 4 + 3]);
+        temp[j * 4 + 3] = GF_Mult(0x0B, state[j * 4 + 0]) ^ GF_Mult(0x0D, state[j * 4 + 1]) ^ GF_Mult(0x09, state[j * 4 + 2]) ^ GF_Mult(0x0E, state[j * 4 + 3]);
+    }
+
+    // Copiar el resultado de temp al estado original
+    for (int i = 0; i < 16; i++) {
+        state[i] = temp[i];
+    }
 }
 
-//______________/ Key Expansion /___________________
+//____________________/ Key Expansion /_____________________________________
 
 // Rotacion de palabras
 void rotWord(uint8_t *word) {
@@ -199,7 +219,18 @@ void keyExpansion(const uint8_t *key, uint8_t *expandedKeys) {
     }
 }
 
-//_______________________/ AES ENCRYPT /______________________________
+
+void printExpandedKeys(const uint8_t *expandedKeys) {
+    for (int i = 0; i < 44; i++) {
+        printf("Clave %d: ", i);
+        for (int j = 0; j < 4; j++) {
+            printf("%02x ", expandedKeys[i * 4 + j]);
+        }
+        printf("\n");
+    }
+}
+
+//_______________________/ AES ENCRYPT /_______________________________________
 
 void aes_encript(uint8_t *state, uint8_t *key) {
     uint8_t roundKeys[176];  // Almacenar 11 claves de ronda (11 * 16 = 176 bytes)
@@ -223,7 +254,36 @@ void aes_encript(uint8_t *state, uint8_t *key) {
 }
 
 
+//_________________________/ AES DECRYPT /______________________________________
 
+void aes_decrypt(uint8_t* state, const uint8_t* key) { //El state de entrada debe ser el encriptado
+    uint8_t stateTemp[16];
+
+    uint8_t roundKeys[176];  // Almacenar 11 claves de ronda (11 * 16 = 176 bytes)
+    keyExpansion(key, roundKeys);  // Expand a la key original: mismas claves que para el encrypt
+
+    // Copiar el bloque del cifrado
+    memcpy(stateTemp, state, 16);
+
+    // Primera ronda: AddRoundKey con la ultima clave expandida
+    addRoundKey(stateTemp, roundKeys + 160); // Clave 10: 160+16=176
+
+    // Nueve rondas: del 9 al 1
+    for (int round = 9; round > 0; round--) {
+        shiftRows(stateTemp);  
+        invSubBytes(stateTemp);
+        addRoundKey(stateTemp, roundKeys + (round * 16));
+        invMixColumns(stateTemp);
+    }
+
+    // Ultima ronda (ronda 0)
+    shiftRows(stateTemp);
+    invSubBytes(stateTemp);
+    addRoundKey(stateTemp, roundKeys); // Clave original
+
+    // Copiar el estado descifrado al bloque de salida
+    memcpy(state, stateTemp, 16);
+}
 
 
 
