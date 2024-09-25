@@ -226,22 +226,23 @@ void keyExpansion(const uint8_t *key, uint8_t *expandedKeys) {
 
     // Inicializar las primeras palabras con la clave original
     while (i < 4) {
-        expandedKeys[i * 4] = key[i * 4];
-        expandedKeys[i * 4 + 1] = key[i * 4 + 1];
-        expandedKeys[i * 4 + 2] = key[i * 4 + 2];
-        expandedKeys[i * 4 + 3] = key[i * 4 + 3];
+        expandedKeys[i * 4]     = key[i];
+        expandedKeys[i * 4 + 1] = key[i + 4];
+        expandedKeys[i * 4 + 2] = key[i + 8];
+        expandedKeys[i * 4 + 3] = key[i + 12];
         i++;
     }
 
     // Generar el resto de las claves
     i = 4;
     while (i < 4 * (10 + 1)) {
+        // temp = ultima palabra expandida
         temp = (expandedKeys[(i - 1) * 4] << 24) | 
                (expandedKeys[(i - 1) * 4 + 1] << 16) | 
                (expandedKeys[(i - 1) * 4 + 2] << 8) | 
                expandedKeys[(i - 1) * 4 + 3];
 
-        if (i % 4 == 0) {
+        if (i % 4 == 0) { // posicion multiplo de 4 
             rotWord((uint8_t *)&temp);   // Rota la palabra
             subWord((uint8_t *)&temp);   // Sustituye con S-box
             temp ^= (rcon[i / 4 - 1] << 24); // Agrega la constante de ronda
