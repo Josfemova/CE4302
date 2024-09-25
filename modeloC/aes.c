@@ -84,32 +84,69 @@ void invSubBytes(uint8_t *state) {
 //________________/ Shift Rows /__________________________________________
 
 void shiftRows(uint8_t *state) {
-    uint8_t temp;
+    uint8_t temp[16];
 
-    // Primera fila (sin cambios): state[0] a state[3] 
+    // Columna 1
+    temp[0]  = state[0]; //Primera fila (sin cambios) 
+    temp[1]  = state[5]; // Segunda fila: rotar 1 byte a la izquierda
+    temp[2]  = state[10]; // Tercera fila: rotar 2 bytes a la izquierda
+    temp[3]  = state[15]; // Cuarta fila: rotar 3 bytes a la izquierda
 
-    // Segunda fila: rotar 1 byte a la izquierda
-    temp = state[4]; 
-    state[4] = state[5]; 
-    state[5] = state[6]; 
-    state[6] = state[7]; 
-    state[7] = temp;
+    // Columna 2
+    temp[4]  = state[4];
+    temp[5]  = state[9];
+    temp[6]  = state[14];
+    temp[7]  = state[3];
 
-    // Tercera fila: rotar 2 bytes a la izquierda
-    temp = state[8]; 
-    state[8] = state[10]; 
-    state[10] = temp; // Intercambiar
-    temp = state[9]; 
-    state[9] = state[11]; 
-    state[11] = temp; // Intercambiar
+    // Columna 3
+    temp[8]  = state[8];
+    temp[9]  = state[13];
+    temp[10] = state[2];
+    temp[11] = state[7];
 
-    // Cuarta fila: rotar 3 bytes a la izquierda
-    temp = state[12]; 
-    state[12] = state[13]; 
-    state[13] = state[14]; 
-    state[14] = state[15]; 
-    state[15] = temp;
+    // Columna 4
+    temp[12] = state[12];
+    temp[13] = state[1];
+    temp[14] = state[6];
+    temp[15] = state[11];
+
+    for (int i = 0; i < 16; i++) {
+        state[i] = temp[i];
+    }
 }
+
+
+void invShiftRows(uint8_t *state) {
+    uint8_t temp[16];
+
+    // Columna 1
+    temp[0]  = state[0]; 
+    temp[1]  = state[13]; // Tercera fila: rotar 1 byte a la derecha
+    temp[2]  = state[10]; // Segunda fila: rotar 2 bytes a la derecha
+    temp[3]  = state[7];  // Primera fila: rotar 3 bytes a la derecha
+
+    // Columna 2
+    temp[4]  = state[4];
+    temp[5]  = state[1];
+    temp[6]  = state[14];
+    temp[7]  = state[11];
+
+    // Columna 3
+    temp[8]  = state[8];
+    temp[9]  = state[5];
+    temp[10] = state[2];
+    temp[11] = state[15];
+
+    // Columna 4
+    temp[12] = state[12];
+    temp[13] = state[9];
+    temp[14] = state[6];
+    temp[15] = state[3];
+
+    memcpy(state, temp, 16);
+}
+
+
 
 //________________/ Mix Columns /__________________________________________
 
@@ -270,14 +307,14 @@ void aes_decrypt(uint8_t* state, const uint8_t* key) { //El state de entrada deb
 
     // Nueve rondas: del 9 al 1
     for (int round = 9; round > 0; round--) {
-        shiftRows(stateTemp);  
+        invShiftRows(stateTemp);  
         invSubBytes(stateTemp);
         addRoundKey(stateTemp, roundKeys + (round * 16));
         invMixColumns(stateTemp);
     }
 
     // Ultima ronda (ronda 0)
-    shiftRows(stateTemp);
+    invShiftRows(stateTemp);
     invSubBytes(stateTemp);
     addRoundKey(stateTemp, roundKeys); // Clave original
 
