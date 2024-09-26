@@ -205,11 +205,12 @@ void invMixColumns(uint8_t *state) {
 
 // Rotacion de palabras
 void rotWord(uint8_t *word) {
-    uint8_t temp = word[0];
-    for (int i = 0; i < 3; i++) {
-        word[i] = word[i + 1];
-    }
-    word[3] = temp;
+    uint8_t saved[4];
+    memcpy(saved, word, 4);
+    word[0] = saved[1];
+    word[1] = saved[2];
+    word[2] = saved[3];
+    word[3] = saved[0];
 }
 
 // Sustitucion de bytes usando la S-box
@@ -221,48 +222,48 @@ void subWord(uint8_t *word) {
 
 // Expansion de clave
 void keyExpansion(const uint8_t *key, uint8_t *expandedKeys) {
-    uint32_t temp;
-    int i = 0;
-
     // Inicializar las primeras palabras con la clave original
-    while (i < 4) {
-        expandedKeys[i * 4]     = key[i];
-        expandedKeys[i * 4 + 1] = key[i + 4];
-        expandedKeys[i * 4 + 2] = key[i + 8];
-        expandedKeys[i * 4 + 3] = key[i + 12];
-        i++;
-    }
-
+    memset(expandedKeys, 0, 16*11);
+    memcpy(expandedKeys, key, 16);
     // Generar el resto de las claves
-    i = 4;
-    while (i < 4 * (10 + 1)) {
-        // temp = ultima palabra expandida
-        temp = (expandedKeys[(i - 1) * 4] << 24) | 
-               (expandedKeys[(i - 1) * 4 + 1] << 16) | 
-               (expandedKeys[(i - 1) * 4 + 2] << 8) | 
-               expandedKeys[(i - 1) * 4 + 3];
+    uint8_t w0[4];
+    uint8_t w1[4];
+    uint8_t w2[4];
+    uint8_t w3[4];
 
-        if (i % 4 == 0) { // posicion multiplo de 4 
-            rotWord((uint8_t *)&temp);   // Rota la palabra
-            subWord((uint8_t *)&temp);   // Sustituye con S-box
-            temp ^= (rcon[i / 4 - 1] << 24); // Agrega la constante de ronda
-        }
+    uint8_t transformed[4];
+    for(int i=0; i< 10; i++){
+        uint8_t* base_last_key = expandedKeys + (16*i);
+        uint8_t* base_next_key = expandedKeys + (16*(i+1));
+        memcpy(w0,base_last_key + 0 , 4);
+        memcpy(w1,base_last_key + 4 , 4);
+        memcpy(w2,base_last_key + 8 , 4);
+        memcpy(w3,base_last_key + 12, 4);
+        memcpy(transformed, w3, 4);
+        rotWord(transformed);
+        subWord(transformed);
 
-        expandedKeys[i * 4] = expandedKeys[(i - 4) * 4] ^ (temp >> 24);
-        expandedKeys[i * 4 + 1] = expandedKeys[(i - 4) * 4 + 1] ^ (temp >> 16);
-        expandedKeys[i * 4 + 2] = expandedKeys[(i - 4) * 4 + 2] ^ (temp >> 8);
-        expandedKeys[i * 4 + 3] = expandedKeys[(i - 4) * 4 + 3] ^ temp;
+        transformed[0] ^= rcon[i]; // byte más bajo
+        uint32_t trans = *((uint32_t*)transformed);
+        uint32_t w20 = *((uint32_t*)w0);
 
-        i++;
-    }
+        *((uint32_t*)w0) ^= *((uint32_t*)transformed); 
+        *((uint32_t*)w1) ^= *((uint32_t*)w0); 
+        *((uint32_t*)w2) ^= *((uint32_t*)w1); 
+        *((uint32_t*)w3) ^= *((uint32_t*)w2); 
+        // guardar 
+        memcpy(base_next_key + 0 ,w0, 4);                
+        memcpy(base_next_key + 4 ,w1, 4);                
+        memcpy(base_next_key + 8 ,w2, 4);                
+        memcpy(base_next_key + 12,w3, 4); 
+    }           
 }
 
-
 void printExpandedKeys(const uint8_t *expandedKeys) {
-    for (int i = 0; i < 44; i++) {
-        printf("Clave %d: ", i);
-        for (int j = 0; j < 4; j++) {
-            printf("%02x ", expandedKeys[i * 4 + j]);
+    for (int i = 0; i < 11; i++) {
+        printf("Clave %02d: ", i);
+        for (int j = 0; j < 16; j++) {
+            printf("%02x ", (uint8_t) expandedKeys[i * 16 + j]);
         }
         printf("\n");
     }
@@ -273,7 +274,6 @@ void printExpandedKeys(const uint8_t *expandedKeys) {
 void aes_encript(uint8_t *state, uint8_t *key) {
     uint8_t roundKeys[176];  // Almacenar 11 claves de ronda (11 * 16 = 176 bytes)
     keyExpansion(key, roundKeys);  // expand a la key original
-
     // Ronda inicial: AddRoundKey
     addRoundKey(state, roundKeys); 
 
@@ -290,7 +290,6 @@ void aes_encript(uint8_t *state, uint8_t *key) {
     shiftRows(state);
     addRoundKey(state, roundKeys + (10 * 16));  // Usar la última clave de ronda
 }
-
 
 //_________________________/ AES DECRYPT /______________________________________
 
