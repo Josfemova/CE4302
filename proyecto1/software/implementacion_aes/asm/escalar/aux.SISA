@@ -1,0 +1,219 @@
+#include "../UTIL.SISA"
+#define BLOCK_SIZE 16
+
+/* Obtiene el valor de rcon para una ronda
+args: 
+    - arg0: # de ronda de key expansion empieza en 0
+ret:
+    - arg0: valor de rcon
+*/
+get_rcon:
+    CLIR, t0, 0x01; // valor rcon ronda 0
+    CLIR, t1, 0x100; // valor que se debe reemplazar por 1B
+    CLIR, t2, 0x1B;
+    SLL, arg0, t0, arg0;
+    JILT, arg0, t1, get_rcon_end;
+    get_rcon_gt_0x100:
+        // Obtener cuantos shifts a la izquierda se necesitan
+        SRLI, t3, arg0, 9,
+        SLL, arg0, t2, t3; // 0x1B << t3
+    get_rcon_end:
+        JBA;
+
+
+//________________/ Add Round Key /__________________________________________
+
+/* Realiza la op de add_roundkey
+args: 
+    - arg0: direccion del estado
+    - arg1: direccion de roundkey
+ret:
+    - arg0: direccion del estado
+    - arg1: direccion de roundkey
+*/
+add_roundkey:
+    CLIR, t0, 0; // indice i
+    CLIR, t1, BLOCK_SIZE; // condicion loop
+    MOV(t3, arg0); // ptr_data
+    MOV(t4, arg1); // ptr_key
+    add_roundkey_loop:
+        LDM, t5, t3, 0; // t5 = *ptr_data
+        LDM, t6, t4, 0; // t6 = *ptr_key
+        XOR, t5, t5, t6; // data = data ^ key
+        
+        STM, t5, t3,0; // *ptr_data = data
+        
+        // mover punteros a siguientes 32bits
+        SUMI, t3, t3, 4; 
+        SUMI, t4, t4, 4; 
+        SUMI, t0,t0, 4; // i=i+4
+        JILT, t0, t1, add_roundkey_loop;
+    add_roundkey_end:
+        JBA;    
+        
+//________________/ Sub Bytes /__________________________________________
+
+/* Realiza la op de add_subbytes
+args: 
+    - arg0: direccion del estado
+    - arg1: dirección de SBOX (puede modificar si es subbytes normal o inverso)
+ret:
+    - arg0: direccion del estado
+*/
+subbytes:
+    CLIR, t4, 0; // word_offset en bits
+    MOV(t5, arg0); // puntero para recorrer estado palabra por palabra
+    CLIR, t6, 16; // max val para word_offset
+    subbytes_loop_words:
+        SUM, t5, t5, t4; 
+        MOV(arg0, t5); // cargar dirección de word para llamado de subword
+        CALL, subword;
+        // t5 no fue tocado, arg0 contiene reemplazo
+        STM, arg0, t5,0; // guardar bytes reemplazados
+        SUMI, t4, t4, 4; //offset siguiente palabra
+        JILT, t4, t6, subbytes_loop_words;
+    
+    // restaurar arg0 a valor de direccion del estado 
+    DIFI, arg0, t5, 12;
+    JBA; 
+    
+
+/* Realiza la op de subbytes a una palabra de 32 bits. No usa t4 en adelante
+args: 
+    - arg0: direccion de palabra
+    - arg1: direccion de SBOX a usar (puede ser normal o inverso)
+ret:
+    - arg0: palabra con valor de reemplazo
+    - arg1: direccion de SBOX a usado
+*/
+subword:
+    LDM, arg0, arg0, 0; // carga word
+    CLIR, t0, 0; // byte_index
+    CLIR, t1, 4; // max byte_index
+    MOV(t2, arg1);
+    subbytes_loopbytes:
+        ANDI, t3, arg0, 0xFF; // obtener byte más bajo
+        SLRI, arg0, arg0, 8; // mover word a la derecha, hacer espacio en MSB
+
+        // t3 es offset en si son direccionados como bytes, pero como words?
+        SLLI, t3, t3, 2; // Multiplicar por 4 para obtener offset real
+
+        // Acá t3 es el offset del addres desde la base del SBOX, 
+        // para realizar el reemplazo entonces
+        SUM, t3, t3, t2; // dirección en el SBOX
+        LDM, t3, t3, 0; // t3 obtiene el valor de reemplazo
+        SLLI, t3, t3, 24; // mover t3 a MSB
+
+        OR, arg0, arg0, t3; // agregar valor al MSB 
+
+        SUMI, t0, t0, 1; // byte_index +=1
+        JILT, t0, t1, subbytes_loopbytes;
+    // todos los bytes han sido reemplazados y arg0 contiene la palabra reemplazada!
+    JBA;
+
+//________________/ Shift Rows /__________________________________________
+ 
+/* Realiza la op de shiftrows a todo el estado 
+args: 
+    - arg0: direccion del estado
+ret:
+    - arg0: dirección del estado
+*/
+shift_rows: 
+    LDM, t0, arg0, 0; // col0
+    LDM, t1, arg0, 4; // col1
+    LDM, t2, arg0, 8; // col2
+    LDM, t3, arg0, 12; // col3
+    CLIR, t4, 0xFF;
+    SLLI, t4, t4, 16; // 0xFF0000 mascara 3er elemento
+    SLLI, t5, t4, 8; // 0xFF000000 mascara 4to elemento
+    // columna 0
+    ANDI, t6, t0, 0xFF; // sacar b0 de col0
+    ANDI, t7, t1, 0xFF00; // sacar b1 de col1
+    OR, t6, t6, t7; // juntar primeros dos bytes
+    AND, t7, t2, t4; // sacar b2 de col2
+    OR, t6, t6, t7; // junta con 3er byte
+    AND, t7, t3, t5; // sacar b3 de col3
+    OR, t6, t6, t7; // juntar 4to byte 
+    
+    STM, t6, arg0, 0; // guardar columna 0 
+
+    // columna 1
+    ANDI, t6, t1, 0xFF; // sacar b0 de col1
+    ANDI, t7, t2, 0xFF00; // sacar b1 de col2
+    OR, t6, t6, t7;
+    AND, t7, t3, t4; // sacar b2 de col3
+    OR, t6, t6, t7;
+    AND, t7, t0, t5; // sacar b3 de col0
+    OR, t6, t6, t7; 
+
+    STM, t6, arg0, 4; // guardar columna 1
+
+    // columna 2
+    ANDI, t6, t2, 0xFF; // sacar b0 de col2
+    ANDI, t7, t3, 0xFF00; // sacar b1 de col3
+    OR, t6, t6, t7;
+    AND, t7, t0, t4; // sacar b2 de col0
+    OR, t6, t6, t7;
+    AND, t7, t1, t5; // sacar b3 de col1
+    OR, t6, t6, t7; 
+
+    STM, t6, arg0, 8; // guardar columna 2
+
+    // columna 3
+    ANDI, t6, t3, 0xFF; // sacar b0 de col3
+    ANDI, t7, t0, 0xFF00; // sacar b1 de col0
+    OR, t6, t6, t7;
+    AND, t7, t1, t4; // sacar b2 de col1
+    OR, t6, t6, t7;
+    AND, t7, t2, t5; // sacar b3 de col2
+    OR, t6, t6, t7; 
+
+    STM, t6, arg0, 12; // guardar columna 3
+
+
+inv_shift_rows:
+    //TODO
+    JBA;
+
+
+//________________/ Mix Columns /__________________________________________
+
+gf_mult:
+
+
+ 
+ 
+//____________________/ Key Expansion /_____________________________________
+
+/* Aplica la operación de rotword
+args:
+    - arg0 palara a rotar
+ret:
+    - arg0 palabra rotada
+*/
+rotword:
+    SLRI, t0, arg0, 0; 
+    SLRI, t1, arg0, 8;
+    SLRI, t2, arg0, 16;
+    SLRI, t3, arg0, 24;
+
+    ANDI, t0, t0, 0xFF; //b0
+    ANDI, t1, t1, 0xFF; //b1
+    ANDI, t2, t2, 0xFF; //b2
+    // no es necesario and para MSB en t3
+    MOV(arg0, zero); 
+    OR, arg0, arg0, t0;
+    SLLI, arg0, arg0, 8;
+    OR, arg0, arg0, t3;
+    SLLI, arg0, arg0, 8;
+    OR, arg0, arg0, t2;
+    SLLI, arg0, arg0, 8;
+    OR, arg0, arg0, t1;
+    // palabra rotada en arg0;
+    JBA;
+
+
+        
+
+

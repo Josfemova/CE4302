@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <EnsembleReport name="sisa_final" kind="sisa_final" version="1.0" fabric="QSYS">
  <!-- Format version 18.1 625 (Future versions may contain additional information.) -->
- <!-- 2024.09.21.23:22:49 -->
+ <!-- 2024.09.24.22:39:26 -->
  <!-- A collection of modules and connections -->
  <parameter name="AUTO_GENERATION_ID">
   <type>java.lang.Integer</type>
-  <value>1726982569</value>
+  <value>1727239166</value>
   <derived>false</derived>
   <enabled>true</enabled>
   <visible>false</visible>
@@ -834,8 +834,8 @@ parameters are a RESULT of the module parameters. -->
     <moduleName>ext_ram</moduleName>
     <slaveName>s1</slaveName>
     <name>ext_ram.s1</name>
-    <baseAddress>131072</baseAddress>
-    <span>131072</span>
+    <baseAddress>524288</baseAddress>
+    <span>327680</span>
    </memoryBlock>
    <memoryBlock>
     <isBridge>false</isBridge>
@@ -3382,7 +3382,7 @@ the requested settings for a module instance. -->
   </assignment>
   <assignment>
    <name>embeddedsw.CMacro.SIZE_VALUE</name>
-   <value>131072</value>
+   <value>327680</value>
   </assignment>
   <assignment>
    <name>embeddedsw.CMacro.WRITABLE</name>
@@ -3514,7 +3514,7 @@ the requested settings for a module instance. -->
   </parameter>
   <parameter name="memorySize">
    <type>long</type>
-   <value>131072</value>
+   <value>327680</value>
    <derived>false</derived>
    <enabled>true</enabled>
    <visible>true</visible>
@@ -3653,7 +3653,7 @@ the requested settings for a module instance. -->
   </parameter>
   <parameter name="derived_set_addr_width">
    <type>int</type>
-   <value>15</value>
+   <value>17</value>
    <derived>true</derived>
    <enabled>true</enabled>
    <visible>false</visible>
@@ -3661,7 +3661,7 @@ the requested settings for a module instance. -->
   </parameter>
   <parameter name="derived_set_addr_width2">
    <type>int</type>
-   <value>15</value>
+   <value>17</value>
    <derived>true</derived>
    <enabled>true</enabled>
    <visible>false</visible>
@@ -3753,7 +3753,7 @@ parameters are a RESULT of the module parameters. -->
    </parameter>
    <parameter name="addressSpan">
     <type>java.math.BigInteger</type>
-    <value>131072</value>
+    <value>327680</value>
     <derived>true</derived>
     <enabled>true</enabled>
     <visible>false</visible>
@@ -3841,7 +3841,7 @@ parameters are a RESULT of the module parameters. -->
    </parameter>
    <parameter name="explicitAddressSpan">
     <type>java.math.BigInteger</type>
-    <value>131072</value>
+    <value>327680</value>
     <derived>false</derived>
     <enabled>true</enabled>
     <visible>true</visible>
@@ -4052,7 +4052,7 @@ parameters are a RESULT of the module parameters. -->
    <port>
     <name>address</name>
     <direction>Input</direction>
-    <width>15</width>
+    <width>17</width>
     <role>address</role>
    </port>
    <port>
@@ -4130,7 +4130,7 @@ parameters are a RESULT of the module parameters. -->
    </parameter>
    <parameter name="addressSpan">
     <type>java.math.BigInteger</type>
-    <value>131072</value>
+    <value>327680</value>
     <derived>true</derived>
     <enabled>true</enabled>
     <visible>false</visible>
@@ -4218,7 +4218,7 @@ parameters are a RESULT of the module parameters. -->
    </parameter>
    <parameter name="explicitAddressSpan">
     <type>java.math.BigInteger</type>
-    <value>131072</value>
+    <value>327680</value>
     <derived>false</derived>
     <enabled>true</enabled>
     <visible>true</visible>
@@ -4429,7 +4429,7 @@ parameters are a RESULT of the module parameters. -->
    <port>
     <name>address2</name>
     <direction>Input</direction>
-    <width>15</width>
+    <width>17</width>
     <role>address</role>
    </port>
    <port>
@@ -6317,8 +6317,8 @@ parameters are a RESULT of the module parameters. -->
     <moduleName>ext_ram</moduleName>
     <slaveName>s2</slaveName>
     <name>ext_ram.s2</name>
-    <baseAddress>131072</baseAddress>
-    <span>131072</span>
+    <baseAddress>524288</baseAddress>
+    <span>327680</span>
    </memoryBlock>
    <memoryBlock>
     <isBridge>false</isBridge>
@@ -9058,7 +9058,7 @@ parameters are a RESULT of the module parameters. -->
   </parameter>
   <parameter name="baseAddress">
    <type>java.math.BigInteger</type>
-   <value>0x00020000</value>
+   <value>0x00080000</value>
    <derived>false</derived>
    <enabled>true</enabled>
    <visible>true</visible>
@@ -9262,7 +9262,7 @@ parameters are a RESULT of the module parameters. -->
   </parameter>
   <parameter name="baseAddress">
    <type>java.math.BigInteger</type>
-   <value>0x00020000</value>
+   <value>0x00080000</value>
    <derived>false</derived>
    <enabled>true</enabled>
    <visible>true</visible>
