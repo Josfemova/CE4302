@@ -1,20 +1,16 @@
 #include "../UTIL.SISA"
+#include "aux.SISA"
 
-/*
 init:
-    // NOPS dan tiempo de setup a memorias
-    NOP;
-    NOP;
-    NOP;
-    NOP;
-    NOP*/;
+    CLIR, sp, STACK_START;
+    
+
 
 start:
     CLIR, t5, 0x24;
     MOV(arg0, t5);
     NOP;
     NOP;
-    CALL, subbyte;
     CLIR, t1, 23;
     CLIR, t2, 44;
     NOP;
@@ -22,16 +18,6 @@ start:
     NOP;  
     JMP, end;
 
-
-/* Sub rutina
-    arg0 - valor a sustituir
-*/
-subbyte:
-    CLIR, t0, SBOX_BASE_ADDR;
-    SLLI, t1, arg0, 2; // obtiene offset de mem a partir de valor
-    SUM, t2, t0, t1; // direccion final
-    LDM, arg0, t2, 0; // carga byte de reemplazo
-    JBA;
 
 end:
    END_SIMUL;

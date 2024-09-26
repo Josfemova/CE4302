@@ -7,13 +7,27 @@
 #define STACK_START 0x2ffc
 #define STACK_END 0x2800
 
+// Registros internos del CPU 
+#define CSR_CYCLEL 0x7000
+#define CSR_CYCLEH 0x7004
+#define CSR_MANUAL_STEP_EN 0x7008
+#define CSR_MANUAL_STEPS 0x700c
+#define CSR_INSTR_IF 0x7010
+#define CSR_INSTR_DE 0x7014
+#define CSR_INSTR_EX 0x7018
+#define CSR_INSTR_MEM 0x701c
+#define CSR_INSTR_WB 0x7020
+/*Espacio acá es reservado para counters no implementado aun, puro extra*/
+#define CSR_SCRATCH_START 0x7040
+#define CSR_SCRATCH_END 0x7080
+
 // Perifericos
 #define UART_BASE 0x3000
+
+// Memorias auxiliares
 #define SBOX_BASE 0x4000
 #define RSBOX_BASE 0x5000
-
 #define RAM_BASE 0x20000 // datos a encriptar
-
 
 #define ENC_HDR_STATUS 0x2000
 #define ENC_HDR_OP 0x2004 /*0 si es encriptar, otro valor de lo contrario*/
