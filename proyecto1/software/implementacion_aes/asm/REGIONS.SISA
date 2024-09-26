@@ -27,7 +27,7 @@
 // Memorias auxiliares
 #define SBOX_BASE 0x4000
 #define RSBOX_BASE 0x5000
-#define RAM_BASE 0x20000 // datos a encriptar
+#define RAM_BASE 0x80000 // datos a encriptar
 
 #define ENC_HDR_STATUS 0x2000
 #define ENC_HDR_OP 0x2004 /*0 si es encriptar, otro valor de lo contrario*/

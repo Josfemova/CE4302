@@ -1,24 +1,45 @@
 #include "../UTIL.SISA"
-#include "aux.SISA"
 
 init:
-    CLIR, sp, STACK_START;
+    CLIR, sp, STACK_START; // incializar stack pointer
     
-
-
 start:
-    CLIR, t5, 0x24;
-    MOV(arg0, t5);
-    NOP;
-    NOP;
-    CLIR, t1, 23;
-    CLIR, t2, 44;
-    NOP;
-    NOP;
-    NOP;  
-    JMP, end;
+    // key expansion
+
+    CLIR, arg0, ENC_HDR_AES_KEY;
+    
+    CLIR, t0, 0xCDEF;
+    CLIR, t1, 0x89AB;
+    SLLI, t1, t1, 16;
+    CLIR, t2, 0x4567;
+    CLIR, t3, 0x0123;
+    SLLI, t3, t3, 16;
+    OR, t0, t0, t1;
+    OR, t2, t2, t3;
+    STM, t0, arg0, 0;
+    STM, t2, arg0, 4;
+    STM, t0, arg0, 8;
+    STM, t2, arg0, 12;
+    
+    CALL, key_expansion;
+
+    //LDM, t0, zero, ENC_HDR_OP; // se puede porque imm es de 15 bits, signo extendido
+    //CLIR, t2, UART_BASE;
+    //JINE, t0, zero, decrypt;
+    
+    encrypt:   
+        CLIR, t3, 'E';
+        STM, t3, t2, 0;
+        JMP, end;
+
+    decrypt:
+        CLIR, t3, 'D';
+        STM, t3, t2, 0;
+        JMP, end;
 
 
 end:
    END_SIMUL;
    JMP, end;
+
+#include "aux.SISA" //incluir acá porque si no se procesa primero
