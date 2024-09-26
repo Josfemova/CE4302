@@ -1,4 +1,4 @@
-module mix_columns(
+module inv_mix_columns(
     input  logic [127:0] state_in,  
     output logic [127:0] state_out  
 );
@@ -25,7 +25,7 @@ module mix_columns(
         end
     endfunction
 
-    // variables temporales 
+    // Variables temporales
     logic [7:0] state [0:15];
     logic [7:0] temp [0:15];
 
@@ -35,12 +35,12 @@ module mix_columns(
             state[i] = state_in[127 - i*8 -: 8];
         end
 
-        // Mix Columns
+        // Inverse Mix Columns
         for (int j = 0; j < 4; j++) begin
-            temp[j * 4 + 0] = GF_Mult(8'h02, state[j * 4 + 0]) ^ GF_Mult(8'h03, state[j * 4 + 1]) ^ state[j * 4 + 2] ^ state[j * 4 + 3];
-            temp[j * 4 + 1] = state[j * 4 + 0] ^ GF_Mult(8'h02, state[j * 4 + 1]) ^ GF_Mult(8'h03, state[j * 4 + 2]) ^ state[j * 4 + 3];
-            temp[j * 4 + 2] = state[j * 4 + 0] ^ state[j * 4 + 1] ^ GF_Mult(8'h02, state[j * 4 + 2]) ^ GF_Mult(8'h03, state[j * 4 + 3]);
-            temp[j * 4 + 3] = GF_Mult(8'h03, state[j * 4 + 0]) ^ state[j * 4 + 1] ^ state[j * 4 + 2] ^ GF_Mult(8'h02, state[j * 4 + 3]);
+            temp[j * 4 + 0] = GF_Mult(8'h0E, state[j * 4 + 0]) ^ GF_Mult(8'h0B, state[j * 4 + 1]) ^ GF_Mult(8'h0D, state[j * 4 + 2]) ^ GF_Mult(8'h09, state[j * 4 + 3]);
+            temp[j * 4 + 1] = GF_Mult(8'h09, state[j * 4 + 0]) ^ GF_Mult(8'h0E, state[j * 4 + 1]) ^ GF_Mult(8'h0B, state[j * 4 + 2]) ^ GF_Mult(8'h0D, state[j * 4 + 3]);
+            temp[j * 4 + 2] = GF_Mult(8'h0D, state[j * 4 + 0]) ^ GF_Mult(8'h09, state[j * 4 + 1]) ^ GF_Mult(8'h0E, state[j * 4 + 2]) ^ GF_Mult(8'h0B, state[j * 4 + 3]);
+            temp[j * 4 + 3] = GF_Mult(8'h0B, state[j * 4 + 0]) ^ GF_Mult(8'h0D, state[j * 4 + 1]) ^ GF_Mult(8'h09, state[j * 4 + 2]) ^ GF_Mult(8'h0E, state[j * 4 + 3]);
         end
 
         // Reconstruccion de state_out 
