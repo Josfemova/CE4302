@@ -116,6 +116,7 @@ module stage_execute (
   assign alu_result = (alu_sel) ? {4{scal_alu_result}} : vector_alu_result;
 
   assign op1 = (ex_alu_src_op1) ? pre_op1 : 127'b0;
+  // debera cuadriplicar el imm acá? por ahora no
   assign op2 = (ex_alu_src_op2) ? ex_imm_ext : write_data;
 
   assign mem_alu_result = mem_alu_result_proxy;

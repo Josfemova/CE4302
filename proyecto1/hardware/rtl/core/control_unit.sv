@@ -70,7 +70,7 @@ module control_unit (
   assign jump_cond = (op == OP_G);
   assign jump_cond_type = func3;  // solo importa para tipo g
   assign alu_src_op1 = (op != OP_D);  // solo queremos que sea uno cuando haya que forzar un 0
-  assign alu_src_op2 = (op != OP_A) && (op != OP_G);  // aplica para tipo b,c,d e o f
+  assign alu_src_op2 = (op != OP_A) && (op != OP_G) && (op != OP_E);  // aplica para tipo b,c,d o f
   assign pc_target_src = (op == OP_F); // source de pc target es ALURES si es JLRL
   
   always @(*) begin
@@ -113,6 +113,7 @@ module control_unit (
         alu_control = {func11[0],func3};
         imm_src = 4'b0;  // no importa
         result_src = RESULT_SRC_ALURES;
+        vector_op = 1'b1;
       end
       OP_F: begin
         alu_control = 4'b0;  // suma dir de ldm o registro de jump + label
