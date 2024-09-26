@@ -32,7 +32,7 @@ module hazard_unit (
   assign ex_stall =  stall_all | reset;
   assign mem_stall = ex_stall;
   assign wb_stall = ex_stall;
-  assign de_flush = ex_pc_src | reset;
+  assign de_flush = ex_pc_src | reset ;
   assign ex_flush = ldm_hazard_stall | ex_pc_src | reset;
 
   always @(*) begin

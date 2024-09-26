@@ -173,15 +173,16 @@ module core_top (
   reg last_reset;
   reg last_halt;
   always @(posedge clk) begin 
+    last_reset <= reset;
     if(reset) begin 
-        last_reset<=0;
         last_halt<=0;
+        saved_instruction<=0;
+        use_current_instr_mem_readdata <= 0; // basura en read port
     end else begin 
-        last_reset <= reset;
         last_halt <= halt_cpu;
         // magia a ver si arreglo el halt
         use_current_instr_mem_readdata <= (instr_memory_read_en | last_reset) && (~halt_cpu);
-        if(~last_halt) begin 
+        if((~last_halt) && (~last_reset)) begin 
             saved_instruction <= if_instr_rd;
         end else begin 
             saved_instruction <= saved_instruction;

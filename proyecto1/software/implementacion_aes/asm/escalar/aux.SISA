@@ -15,7 +15,7 @@ get_rcon:
     JILT, arg0, t1, get_rcon_end;
     get_rcon_gt_0x100:
         // Obtener cuantos shifts a la izquierda se necesitan
-        SRLI, t3, arg0, 9,
+        SLRI, t3, arg0, 9;
         SLL, arg0, t2, t3; // 0x1B << t3
     get_rcon_end:
         JBA;
@@ -66,7 +66,7 @@ subbytes:
     CLIR, t6, 16; // max val para word_offset
     subbytes_loop_words:
         SUM, t5, t5, t4; 
-        MOV(arg0, t5); // cargar dirección de word para llamado de subword
+        LDM, arg0, t5, 0; // cargar word a substituir
         CALL, subword;
         // t5 no fue tocado, arg0 contiene reemplazo
         STM, arg0, t5,0; // guardar bytes reemplazados
@@ -80,14 +80,13 @@ subbytes:
 
 /* Realiza la op de subbytes a una palabra de 32 bits. No usa t4 en adelante
 args: 
-    - arg0: direccion de palabra
+    - arg0: palabra a reemplazar
     - arg1: direccion de SBOX a usar (puede ser normal o inverso)
 ret:
     - arg0: palabra con valor de reemplazo
     - arg1: direccion de SBOX a usado
 */
 subword:
-    LDM, arg0, arg0, 0; // carga word
     CLIR, t0, 0; // byte_index
     CLIR, t1, 4; // max byte_index
     MOV(t2, arg1);
@@ -180,7 +179,8 @@ inv_shift_rows:
 //________________/ Mix Columns /__________________________________________
 
 gf_mult:
-
+    // TODO
+    JBA;
 
  
  
@@ -188,7 +188,7 @@ gf_mult:
 
 /* Aplica la operación de rotword
 args:
-    - arg0 palara a rotar
+    - arg0 palabra a rotar
 ret:
     - arg0 palabra rotada
 */
@@ -214,6 +214,80 @@ rotword:
     JBA;
 
 
+/* Ejecuta la expansion de llaves
+args:
+    - arg0 dirección del key store, con la primera llave ya cargada
+ret:
+    - arg0 valor inicial
+*/
+key_expansion:
+    // t0 almacena w0
+    // t1 almacena w1
+    // t2 almacena w2
+    // t3 almacena w3
+    // t4 almacena la transformacion de w3
+    // g0 es el puntero al keystore
+    // g1 es el indice de loop
+    // g2 es el max de iteraciones
+    // g3 es para guardar resultado de subword
+    PUSH(lr)
+    PUSH(arg0)
+    /* realmente estos no los uso antes
+    PUSH(arg1)
+    PUSH(g0)
+    PUSH(g1)
+    PUSH(g2)
+    PUSH(g3)*/
+
+    MOV(g0, arg0);
+    CLIR, g1, 0;
+    CLIR, g2, 10;
+    CLIR, arg1, SBOX_BASE; //SBOX a utilizar para subword
+
+    key_expansion_loop:
+        LDM, arg0, g0, 12; //cargar w3 de ronda anterior
+        CALL, rotword; // arg0 contiene w3 rotada
+        CALL, subword; // arg0 contiene w3 substituida
+        MOV(g3, arg0);
+        MOV(arg0, g1); // índice de ronda 
+        CALL, get_rcon; // arg0 ahora contiene rcon
+        XOR, g3, g3, arg0; // sub(rot(w3)) ^= rcon[i]
         
+        // cargar estado de ronda anterior
+        LDM, t0, g0, 0;
+        LDM, t1, g0, 4;
+        LDM, t2, g0, 8;
+        LDM, t3, g0, 12;
+
+        XOR, t0, t0, g3;
+        XOR, t1, t1, t0;
+        XOR, t2, t2, t1;
+        XOR, t3, t3, t2;
+
+        // almacenar llave siguiente
+        SUMI, g0, g0, 16;         
+        STM, t0, g0, 0;
+        STM, t1, g0, 4;
+        STM, t2, g0, 8;
+        STM, t3, g0, 12;
 
 
+        // suma y check condicion
+        SUMI, g1, g1, 1;
+        JILT, g1, g2, key_expansion_loop;
+    
+    /* Realmente estos no se usan antes
+    POP(g3)
+    POP(g2)
+    POP(g1)
+    POP(g0)
+    POP(arg1)
+    */
+    POP(arg0)
+    POP(lr)
+    JBA;
+
+NOP;
+NOP;
+NOP;
+NOP;

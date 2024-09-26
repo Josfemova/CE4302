@@ -16,13 +16,13 @@
 #define NEG(rd, rs) DIF,rd,zero,rs
 #define CALL JLL,lr
 #define JMP JLL,zero
-#define PUSH(rs) SUMI, sp, sp, -4; \
+#define PUSH(rs) SUMI, sp, sp, -4; sisa_nl\
                  STM, rs, sp, 0; 
-#define POP(rs)  LDM, rs, sp, 0; \
+#define POP(rs)  LDM, rs, sp, 0; sisa_nl\
                  SUMI, sp, sp, 4; 
-#define VPUSH(vrs) SUMI, sp, sp, -16; \
+#define VPUSH(vrs) SUMI, sp, sp, -16; sisa_nl\
                  STV, vrs, sp, 0; 
-#define VPOP(vrs)  LDV, vrs, sp, 0; \
+#define VPOP(vrs)  LDV, vrs, sp, 0; sisa_nl\
                  SUMI, sp, sp, 16; 
 
 #define TRUE 1
