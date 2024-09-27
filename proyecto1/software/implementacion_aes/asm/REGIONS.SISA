@@ -17,6 +17,9 @@
 #define CSR_INSTR_EX 0x7018
 #define CSR_INSTR_MEM 0x701c
 #define CSR_INSTR_WB 0x7020
+#define CSR_VECTOR_STALL_CNT 0x7024
+#define CSR_COMPLETED_INSTRL 0x7028
+#define CSR_COMPLETED_INSTRH 0x702c
 /*Espacio acá es reservado para counters no implementado aun, puro extra*/
 #define CSR_SCRATCH_START 0x7040
 #define CSR_SCRATCH_END 0x7080
@@ -29,7 +32,7 @@
 #define RSBOX_BASE 0x5000
 #define RAM_BASE 0x80000 // datos a encriptar
 
-#define ENC_HDR_STATUS 0x2000
+#define ENC_HDR_STATUS 0x2000 /*0 es waiting, 1 es procesando, 2 es listo*/
 #define ENC_HDR_OP 0x2004 /*0 si es encriptar, otro valor de lo contrario*/
 #define ENC_HDR_BLOCKS 0x2008 /* Indica tamaño de datos en multiplos de 16 bytes */
 #define ENC_HDR_AES_KEY 0x2010 /* Ubicacion llave inicial */
