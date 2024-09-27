@@ -8,8 +8,8 @@ module stage_memory (
 
     // inputs de control unit
     input mem_reg_write,
-    //input mem_mem_write,
-    //input mem_mem_read,
+    input mem_mem_write,
+    input mem_mem_read,
     input [1:0] mem_result_src,
     input mem_vector_op,
 
@@ -50,7 +50,7 @@ module stage_memory (
   load_store_unit ldstu(
     .clk, 
     .reset(reset),
-    .vector_op(mem_vector_op),
+    .vector_op(mem_vector_op && (mem_mem_read || mem_mem_write)),
     .base_addr(mem_alu_result[31:0]), // ignorar bits altos
     .in_writedata(mem_write_data), 
     .in_readdata(mem_read_result), 

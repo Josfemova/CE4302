@@ -276,7 +276,7 @@ void aes_encript(uint8_t *state, uint8_t *key) {
     keyExpansion(key, roundKeys);  // expand a la key original
     // Ronda inicial: AddRoundKey
     addRoundKey(state, roundKeys); 
-
+    
     // 9 rondas de AES 
     for (int round = 1; round <= 9; round++) {
         subBytes(state);                // Sustituye los bytes usando S-box
@@ -289,6 +289,7 @@ void aes_encript(uint8_t *state, uint8_t *key) {
     subBytes(state);
     shiftRows(state);
     addRoundKey(state, roundKeys + (10 * 16));  // Usar la última clave de ronda
+    
 }
 
 //_________________________/ AES DECRYPT /______________________________________

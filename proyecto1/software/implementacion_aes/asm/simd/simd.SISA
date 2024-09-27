@@ -20,11 +20,15 @@ start:
     STM, t2, arg0, 4;
     STM, t0, arg0, 8;
     STM, t2, arg0, 12;
+    /*LDV, v0, arg0, 0;
+    LDV, v1, arg0, 0;
+    VXOR, v0, v0, v1;*/
+    END_SIMUL;
     
     CALL, key_expansion;
 
     //LDM, t0, zero, ENC_HDR_OP; // se puede porque imm es de 15 bits, signo extendido
-    //CLIR, t2, UART_BASE;
+    CLIR, t2, UART_BASE;
     //JINE, t0, zero, decrypt;
    
 encrypt:   
@@ -44,6 +48,8 @@ encrypt_block:
     CLIR, t0, ENC_HDR_AES_KEY; // puntero al key store
 
     LDV, v0, arg0, 0; // cargar estado
+    // OH NOOOOO un riesgo no corregido
+    NOP;// acá hasta saber como resolver
     LDV, v1, t0, 0; // cargar round_key
     VXOR, v0, v0, v1; // add roundkey
 
@@ -52,9 +58,11 @@ encrypt_block:
     encrypt_block_loop:
         SUMI, t0, t0, 16; // aumentar puntero de roundkey
         LDV, v1, t0, 0; // cargar roundkey para esta ronda
+        NOP;
         VAES_SUB, v0, v0, zero; //sub bytes
         VAES_SHIFT, v0, v0, zero; // shift rows 
-        VAES_MIX, v0, v0, v1; // mix colums en inmediatamente add roundkey
+        VAES_MIX, v0, v0, zero; // mix colums en inmediatamente add roundkey
+        VXOR, v0, v0, v1;
 
         SUMI, t1, t1, 1;
         JILT, t1, t2, encrypt_block_loop;
@@ -62,9 +70,14 @@ encrypt_block:
     // ronda final
     SUMI, t0, t0, 16; // aumentar puntero de roundkey
     LDV, v1, t0, 0; // cargar roundkey para esta ronda
+    NOP;
     VAES_SUB, v0, v0, zero; //sub bytes
-    VAES_SHIFT, v0, v0, zero; // shift rows 
-    VXOR, v0, v0, v1; // add_roundkey final
+    VAES_SHIFT, v0, v0, zero; // shift rows y add roundkey final
+    VXOR, v0, v0, v1; // shift rows y add roundkey final
+    NOP;
+    STV, v0, arg0, 0;
+    NOP;
+    NOP;
 
     JBA;
 

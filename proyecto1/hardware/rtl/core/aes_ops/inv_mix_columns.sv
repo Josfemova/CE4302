@@ -26,13 +26,13 @@ module inv_mix_columns(
     endfunction
 
     // Variables temporales
-    logic [7:0] state [0:15];
-    logic [7:0] temp [0:15];
+    logic [15:0][7:0] state;
+    logic [15:0][7:0] temp;
 
     // Separar state_in en columnas
     always_comb begin
         for (int i = 0; i < 16; i++) begin
-            state[i] = state_in[127 - i*8 -: 8];
+            state[i] = state_in[i*8 +:8];
         end
 
         // Inverse Mix Columns
@@ -45,7 +45,7 @@ module inv_mix_columns(
 
         // Reconstruccion de state_out 
         for (int i = 0; i < 16; i++) begin
-            state_out[127 - i*8 -: 8] = temp[i];
+            state_out[i*8+: 8] = temp[i];
         end
     end
 
