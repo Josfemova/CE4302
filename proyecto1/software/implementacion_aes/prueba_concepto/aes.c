@@ -311,7 +311,7 @@ void aes_decrypt(uint8_t* state, const uint8_t* key) { //El state de entrada deb
         invShiftRows(stateTemp);  
         invSubBytes(stateTemp);
         addRoundKey(stateTemp, roundKeys + (round * 16));
-        //invMixColumns(stateTemp);
+        invMixColumns(stateTemp);
     }
 
     // Ultima ronda (ronda 0)

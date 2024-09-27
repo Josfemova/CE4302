@@ -92,9 +92,9 @@ decrypt:
     CLIR, arg0, RAM_BASE;
 
     CLIR, g0, 0;
-    CLIR, g1, 32;
+    CLIR, g1, 1; // cambiar por n bloques
     decrypt_loop:
-        CALL, decrypt_block; // falta ciclo de bloques
+        call, decrypt_block; // falta ciclo de bloques
         SUMI, arg0, arg0, 16; // moverse a siguiente bloque 
         SUMI, g0, g0, 1;
         JILT, g0, g1, decrypt_loop;

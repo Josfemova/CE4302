@@ -23,9 +23,9 @@ module system_tb;
  sisa_final dut(
 		.clk_clk(clk),                //          clk.clk
 		.reset_reset_n(reset_n),           //        reset.reset_n
-		.instr_export_instr_if(instr),  // instr_export.instr_if
+		//.instr_export_instr_if(instr),  // instr_export.instr_if
 		//.instr_export_instr_de(instr),  //             .instr_de
-		//.instr_export_instr_ex(instr),  //             .instr_ex
+		.instr_export_instr_ex(instr),  //             .instr_ex
 		//.instr_export_instr_mem, //             .instr_mem
 		//.instr_export_instr_wb(instr),  //             .instr_wb
     .control_reset_vector_addr(0)

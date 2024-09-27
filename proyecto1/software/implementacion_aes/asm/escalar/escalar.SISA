@@ -27,6 +27,7 @@ start:
     CLIR, t2, UART_BASE;
     //JINE, t0, zero, decrypt;
     //JMP, encrypt;
+    JMP, decrypt;
     
 encrypt:   
     CLIR, t3, 'E';
@@ -34,7 +35,7 @@ encrypt:
     CLIR, arg0, RAM_BASE;
 
     CLIR, g6, 0;
-    CLIR, g7, 42;
+    CLIR, g7, 42; // cambiar por n bloques
     encrypt_loop:
         call, encrypt_block; // falta ciclo de bloques
         SUMI, arg0, arg0, 16; // moverse a siguiente bloque 
@@ -98,10 +99,83 @@ encrypt_block:
     POP(lr)
     JBA;
 
-    decrypt:
-        CLIR, t3, 'D';
-        STM, t3, t2, 0;
-        JMP, end;
+decrypt:   
+    CLIR, t3, 'D';
+    STM, t3, t2, 0;
+    CLIR, arg0, RAM_BASE;
+
+    CLIR, g6, 0;
+    CLIR, g7, 42; // cambiar por n bloques
+    decrypt_loop:
+        call, decrypt_block; // falta ciclo de bloques
+        SUMI, arg0, arg0, 16; // moverse a siguiente bloque 
+        SUMI, g6, g6, 1;
+        JILT, g6, g7, decrypt_loop;
+    
+    NOP;
+    NOP;
+    NOP; // me estresa la simul
+    NOP; // me estresa la simul
+    NOP; // me estresa la simul
+    NOP; // me estresa la simul
+    JMP, end;
+
+/* Ejecuta la desencriptación
+args:
+    - arg0 puntero al bloque a encriptar
+ret:
+    - arg0 puntero a bloque encriptado
+*/
+decrypt_block:
+    PUSH(lr)
+    //PUSH(g0)
+    //PUSH(g1)
+    //PUSH(g2)
+    CLIR, g0, ENC_HDR_AES_KEY; // puntero al key store
+    SUMI, g0, g0, 160; // apuntar a última llave
+    // arg0 ya tiene el puntero a datos
+    // add roundkey 0
+    MOV(arg1, g0);
+    call, add_roundkey;
+
+
+    CLIR, g1, 1; // indice loop
+    CLIR, g2, 10; //max iter LT
+    decrypt_block_loop:
+        // aumentar puntero roundkey 
+        DIFI, g0, g0, 16;
+        // shift rows 
+        call, inv_shift_rows;
+        // subytes
+        CLIR, arg1, RSBOX_BASE;
+        call, subbytes;
+        // add roundkey
+        MOV(arg1, g0);
+        call, add_roundkey;
+        // mix columns
+        call, inv_mix_columns;
+
+
+        SUMI, g1, g1, 1;
+        JILT, g1, g2, decrypt_block_loop;
+    
+
+    // ronda final
+    // decrementar puntero de roundkey
+    DIFI, g0, g0, 16;
+    // shift rows
+    call, inv_shift_rows;
+    // subbytes
+    CLIR, arg1, RSBOX_BASE;
+    call, subbytes;
+    // add roundkey final
+    MOV(arg1, g0);
+    call, add_roundkey;
+    //POP(g2)
+    //POP(g1)
+    //POP(g0)
+    POP(lr)
+    JBA;
 
 
 end:
