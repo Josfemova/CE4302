@@ -82,7 +82,7 @@ module stage_execute (
 
     case (ex_op2_forward)
       2'b01:   write_data = wb_result;
-      2'b10:   write_data = {4{mem_alu_result_proxy[31:0]}};
+      2'b10:   write_data = mem_alu_result_proxy;
       default: write_data = ex_rd2;
     endcase
   end
@@ -149,6 +149,7 @@ module stage_execute (
       mem_mem_write        <= ex_mem_write;
       mem_mem_read         <= ex_mem_read;
       mem_result_src       <= ex_result_src;
+      // a mem solo le importa vector op si es store o load
       mem_vector_op        <= ex_vector_op;
 
       // outputs del data path
