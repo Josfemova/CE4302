@@ -134,6 +134,8 @@ module core_top (
   // ========= Debugging ========/ 
   wire clk_internal;
   reg [63:0] cycle;
+  reg [63:0] instr_cnt; // cuenta cuantas instrucciones llegaron a wb
+  reg [31:0] vstall_cnt; // cuenta cuantos ciclos se perdieron en stalls del vector
   reg [31:0] manual_step_en = 32'b0;
   reg [31:0] manual_steps;
   reg [15:0][31:0] scratch_mem; // regs vacíos RW
@@ -143,7 +145,8 @@ module core_top (
   wire [31:0][31:0] csrs_ro = {
       scratch_mem,    // 0x40
       128'b0,         // 0x30 - 0x34 - 0x38 - 0x3c
-      96'b0,          // 0x24 - 0x28 - 0x2c
+      instr_cnt,      // 0x28 - 0x2c
+      vstall_cnt,          // 0x24
       instr_wb,       // 0x20
       instr_mem,      // 0x1c
       instr_ex,       // 0x18
@@ -377,10 +380,14 @@ module core_top (
           manual_step_en <= 0;
           manual_steps <= 0;
           cycle <= 0;
+          instr_cnt <= 0;
+          vstall_cnt <= 0;
           s1_readdata <= 1'b0;
           s2_readdata <= 1'b0;
       end else begin
           cycle <= (halt_cpu) ? cycle : cycle+1; //aumentar contador de ciclos
+          instr_cnt <= ((halt_cpu | wb_stall) || wb_instr == 32'b0) ? instr_cnt : instr_cnt +1;
+          vstall_cnt <= (halt_cpu | (~stall_all))?  vstall_cnt : vstall_cnt + 1; 
           if(manual_step_en[0] && (manual_steps != 0)) begin 
               manual_steps <= manual_steps -1; //disminuir steps
           end
