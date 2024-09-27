@@ -281,7 +281,7 @@ void aes_encript(uint8_t *state, uint8_t *key) {
     for (int round = 1; round <= 9; round++) {
         subBytes(state);                // Sustituye los bytes usando S-box
         shiftRows(state);               // Rotacion de filas
-        mixColumns(state);              // Mezcla de columnas
+        //mixColumns(state);              // Mezcla de columnas
         addRoundKey(state, roundKeys + (round * 16));  // Agregar clave de ronda
     }
 

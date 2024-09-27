@@ -15,6 +15,7 @@
 #define NOT(rd, rs) XORI,rd,rs,-1
 #define NEG(rd, rs) DIF,rd,zero,rs
 #define CALL JLL,lr
+#define call JLL,lr
 #define JMP JLL,zero
 #define PUSH(rs) SUMI, sp, sp, -4; sisa_nl\
                  STM, rs, sp, 0; 

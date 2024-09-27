@@ -60,7 +60,6 @@ encrypt_block:
     CLIR, t0, ENC_HDR_AES_KEY; // puntero al key store
 
     LDV, v0, arg0, 0; // cargar estado
-    // OH NOOOOO un riesgo no corregido
     LDV, v1, t0, 0; // cargar round_key
     VXOR, v0, v0, v1; // add roundkey
 

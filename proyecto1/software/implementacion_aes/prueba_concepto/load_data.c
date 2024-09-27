@@ -15,8 +15,11 @@ void exec_cypher(uint8_t* data, uint8_t* key, int pixels){
     }
 }
 
+uint8_t GF_Mult(uint8_t a, uint8_t b);
 /* Uso: ejecutable <input file (txt)> <output_file (txt)>*/
 int main(int argc, char** argv){
+    //printf("0x%08lx\n", GF_Mult(0x3, 0xff));
+    //exit(0);
     if(argc < 3){
         fprintf(stderr, "No se tienen suficientes parámetros");
         return 1;
