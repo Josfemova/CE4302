@@ -6,12 +6,14 @@
 #include <time.h>
 
 void aes_encript(uint8_t *state, uint8_t *key);
+void aes_decrypt(uint8_t* state, const uint8_t* key);
 
 void exec_cypher(uint8_t* data, uint8_t* key, int pixels){
     const int block_size = 16;
     
     for(int i=0; i<(pixels*4); i=i+block_size){
-        aes_encript(data+i, key);
+        //aes_encript(data+i, key);
+        aes_decrypt(data+i, key);
     }
 }
 

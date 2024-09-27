@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <EnsembleReport name="sisa_final" kind="sisa_final" version="1.0" fabric="QSYS">
  <!-- Format version 18.1 625 (Future versions may contain additional information.) -->
- <!-- 2024.09.26.20:42:12 -->
+ <!-- 2024.09.27.01:21:59 -->
  <!-- A collection of modules and connections -->
  <parameter name="AUTO_GENERATION_ID">
   <type>java.lang.Integer</type>
-  <value>1727404932</value>
+  <value>1727421719</value>
   <derived>false</derived>
   <enabled>true</enabled>
   <visible>false</visible>
@@ -3350,7 +3350,7 @@ the requested settings for a module instance. -->
   </assignment>
   <assignment>
    <name>embeddedsw.CMacro.INIT_CONTENTS_FILE</name>
-   <value>tst</value>
+   <value>enc</value>
   </assignment>
   <assignment>
    <name>embeddedsw.CMacro.INIT_MEM_CONTENT</name>
@@ -3414,7 +3414,7 @@ the requested settings for a module instance. -->
   </assignment>
   <assignment>
    <name>embeddedsw.memoryInfo.MEM_INIT_FILENAME</name>
-   <value>tst</value>
+   <value>enc</value>
   </assignment>
   <assignment>
    <name>postgeneration.simulation.init_file.param_name</name>
@@ -3490,7 +3490,7 @@ the requested settings for a module instance. -->
   </parameter>
   <parameter name="initializationFileName">
    <type>java.lang.String</type>
-   <value>/tmp/tst.hex</value>
+   <value>/tmp/enc.hex</value>
    <derived>false</derived>
    <enabled>true</enabled>
    <visible>true</visible>
@@ -3701,7 +3701,7 @@ the requested settings for a module instance. -->
   </parameter>
   <parameter name="derived_init_file_name">
    <type>java.lang.String</type>
-   <value>/tmp/tst.hex</value>
+   <value>/tmp/enc.hex</value>
    <derived>true</derived>
    <enabled>true</enabled>
    <visible>false</visible>
@@ -4589,7 +4589,7 @@ the requested settings for a module instance. -->
   </assignment>
   <assignment>
    <name>embeddedsw.CMacro.INIT_CONTENTS_FILE</name>
-   <value>escalar</value>
+   <value>simd</value>
   </assignment>
   <assignment>
    <name>embeddedsw.CMacro.INIT_MEM_CONTENT</name>
@@ -4653,7 +4653,7 @@ the requested settings for a module instance. -->
   </assignment>
   <assignment>
    <name>embeddedsw.memoryInfo.MEM_INIT_FILENAME</name>
-   <value>escalar</value>
+   <value>simd</value>
   </assignment>
   <assignment>
    <name>postgeneration.simulation.init_file.param_name</name>
@@ -4729,7 +4729,7 @@ the requested settings for a module instance. -->
   </parameter>
   <parameter name="initializationFileName">
    <type>java.lang.String</type>
-   <value>/home/josfemova-rs/REPOSITORIES/CE4302/proyecto1/software/implementacion_aes/asm/escalar/output_files/escalar.hex</value>
+   <value>/home/josfemova-rs/REPOSITORIES/CE4302/proyecto1/software/implementacion_aes/asm/simd/output_files/simd.hex</value>
    <derived>false</derived>
    <enabled>true</enabled>
    <visible>true</visible>
@@ -4940,7 +4940,7 @@ the requested settings for a module instance. -->
   </parameter>
   <parameter name="derived_init_file_name">
    <type>java.lang.String</type>
-   <value>/home/josfemova-rs/REPOSITORIES/CE4302/proyecto1/software/implementacion_aes/asm/escalar/output_files/escalar.hex</value>
+   <value>/home/josfemova-rs/REPOSITORIES/CE4302/proyecto1/software/implementacion_aes/asm/simd/output_files/simd.hex</value>
    <derived>true</derived>
    <enabled>true</enabled>
    <visible>false</visible>
