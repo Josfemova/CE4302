@@ -21,16 +21,81 @@ start:
     STM, t0, arg0, 8;
     STM, t2, arg0, 12;
     
-    CALL, key_expansion;
+    call, key_expansion;
 
     //LDM, t0, zero, ENC_HDR_OP; // se puede porque imm es de 15 bits, signo extendido
-    //CLIR, t2, UART_BASE;
+    CLIR, t2, UART_BASE;
     //JINE, t0, zero, decrypt;
     
-    encrypt:   
-        CLIR, t3, 'E';
-        STM, t3, t2, 0;
-        JMP, end;
+encrypt:   
+    CLIR, t3, 'E';
+    STM, t3, t2, 0;
+    CLIR, arg0, RAM_BASE;
+
+    CLIR, g6, 0;
+    CLIR, g7, 1;
+    encrypt_loop:
+        call, encrypt_block; // falta ciclo de bloques
+        SUMI, arg0, arg0, 16; // moverse a siguiente bloque 
+        SUMI, g6, g6, 1;
+        JILT, g6, g7, encrypt_loop;
+    
+    JMP, end;
+
+/* Ejecuta la expansion de llaves
+args:
+    - arg0 puntero al bloque a encriptar
+ret:
+    - arg0 puntero a bloque encriptado
+*/
+encrypt_block:
+    PUSH(lr)
+    //PUSH(g0)
+    //PUSH(g1)
+    //PUSH(g2)
+    CLIR, g0, ENC_HDR_AES_KEY; // puntero al key store
+    // arg0 ya tiene el puntero a datos
+    // add roundkey 0
+    MOV(arg1, g0);
+    call, add_roundkey;
+
+
+    CLIR, g1, 1; // indice loop
+    CLIR, g2, 10; //max iter LT
+    encrypt_block_loop:
+        // aumentar puntero roundkey 
+        SUMI, g0, g0, 16;
+        // subytes
+        CLIR, arg1, SBOX_BASE;
+        call, subbytes;
+        // shift rows 
+        call, shift_rows;
+        // mix columns
+        call, mix_columns;
+        // add roundkey
+        MOV(arg1, g0);
+        call, add_roundkey;
+
+
+        SUMI, g1, g1, 1;
+        JILT, g1, g2, encrypt_block_loop;
+    
+    // ronda final
+    // aumentar puntero de roundkey
+    SUMI, g0, g0, 16;
+    // subbytes
+    CLIR, arg1, SBOX_BASE;
+    call, subbytes;
+    // shift rows
+    call, shift_rows;
+    // add roundkey final
+    MOV(arg1, g0);
+    call, add_roundkey;
+    //POP(g2)
+    //POP(g1)
+    //POP(g0)
+    POP(lr)
+    JBA;
 
     decrypt:
         CLIR, t3, 'D';
