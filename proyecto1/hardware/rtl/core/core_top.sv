@@ -223,6 +223,7 @@ module core_top (
       .clk(clk_internal),
       .ex_clear(ex_clear),
       .ex_stall(ex_stall),
+      .stall_all(stall_all),
       .de_instr(de_instr),
       .de_pc(de_pc),
       .de_pc_plus4(de_pc_plus4),

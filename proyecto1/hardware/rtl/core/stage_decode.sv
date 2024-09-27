@@ -2,6 +2,7 @@ module stage_decode (
     input clk,
     input ex_clear,
     input ex_stall, 
+    input stall_all,
 
     // inputs de stage previo
     input [31:0] de_instr,
@@ -117,7 +118,7 @@ module stage_decode (
   assign de_rs2 = rs2;
 
   always @(posedge clk) begin
-    if (ex_clear) begin
+    if (ex_clear && (~stall_all)) begin
       // debug 
       ex_instr <= 0;
       // outputs de control unit
