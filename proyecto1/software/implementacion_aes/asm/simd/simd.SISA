@@ -4,10 +4,7 @@ init:
     CLIR, sp, STACK_START; // incializar stack pointer
     
 start:
-    // key expansion
-
     CLIR, arg0, ENC_HDR_AES_KEY;
-    
     CLIR, t0, 0xCDEF;
     CLIR, t1, 0x89AB;
     SLLI, t1, t1, 16;
@@ -20,38 +17,107 @@ start:
     STM, t2, arg0, 4;
     STM, t0, arg0, 8;
     STM, t2, arg0, 12;
-    // pruebas para ver comportamiento de load hazard
-    /*LDM, t0, arg0, 0;
-    LDM, t1, arg0,4;
-    XOR, t0, t0, t1;
-    LDV, v0, arg0, 0;
-    LDV, v1, arg0, 4;
-    VXOR, v0, v0, v1;
-    END_SIMUL;*/
     
-    CALL, key_expansion;
+    CLIR, t4, 0;
+    STM, t4, zero, ENC_HDR_OP; // forzar encripcion
+    CLIR, t0, 0x52; 
+    STM, t0, zero, ENC_HDR_BLOCKS; // solo desencriptar 2 bloques 
+    /////// HASTA AQUI SOLO PARA SIMUL
+    
+    STM, zero, zero, ENC_HDR_STATUS; 
+    // iniciar clk counter
+    CLIR, g0, CSR_SCRATCH_START;
+    CLIR, arg0, CSR_CYCLEL;
+    CLIR, arg1, CSR_CYCLEH;
+    call, read_64bit_cnt;
+    STM, arg0, g0, 0x10;
+    STM, arg1, g0, 0x14;
 
-    //LDM, t0, zero, ENC_HDR_OP; // se puede porque imm es de 15 bits, signo extendido
+    // Iniciar el instruction counter
+    CLIR, arg0, CSR_COMPLETED_INSTRL;
+    CLIR, arg1, CSR_COMPLETED_INSTRH;
+    call, read_64bit_cnt;
+    STM, arg0, g0, 0x18;
+    STM, arg1, g0, 0x1c;
+
+
+    // key expansion
+    CLIR, arg0, ENC_HDR_AES_KEY;
+    call, key_expansion;
+
+    LDM, t0, zero, ENC_HDR_OP; // se puede porque imm es de 15 bits, signo extendido
     CLIR, t2, UART_BASE;
-    //JINE, t0, zero, decrypt;
-    JMP, decrypt;
-   
-encrypt:   
+    CLIR, arg0, RAM_BASE;
+    LDM, arg1, zero, ENC_HDR_BLOCKS;
+    JINE, t0, zero, call_decrypt;
+    call, encrypt;
+    JMP, after_encrypt;
+call_decrypt:
+    //JMP, encrypt;
+    call, decrypt;
+after_encrypt:
+    // termina clk counter
+    CLIR, g0, CSR_SCRATCH_START;
+    CLIR, arg0, CSR_CYCLEL;
+    CLIR, arg1, CSR_CYCLEH;
+    call, read_64bit_cnt;
+    STM, arg0, g0, 0x20;
+    STM, arg1, g0, 0x24;
+
+    // termina el instruction counter
+    CLIR, arg0, CSR_COMPLETED_INSTRL;
+    CLIR, arg1, CSR_COMPLETED_INSTRH;
+    call, read_64bit_cnt;
+    STM, arg0, g0, 0x28;
+    STM, arg1, g0, 0x2c;
+
+    CLIR, g1, 2;
+    STM, g1, zero, ENC_HDR_STATUS; // Decir que status OK
+
+    JMP,end;
+
+/* Lee counter de 64 bits
+args:
+    - arg0 puntero a low word
+    - arg1 puntero a high word
+ret:
+    - arg0 low word 
+    - arg1 high word 
+*/
+read_64bit_cnt:
+    read_64bit_cnt_loop:
+        LDM, t1, arg1, 0;
+        LDM, t0, arg0, 0;
+        LDM, t2, arg1, 0;
+        JINE, t1, t2, read_64bit_cnt_loop; // si high cambio, tengo que volver a leer
+    MOV(arg0, t0);
+    MOV(arg1, t1);
+    JBA;
+
+/* Cifrado
+args:
+    - arg0 puntero a datos
+    - arg1 bloques 
+ret:
+    - arg0 basura
+    - arg1 basura
+*/
+encrypt: 
+    PUSH(lr)
     CLIR, t3, 'E';
     STM, t3, t2, 0;
-    CLIR, arg0, RAM_BASE;
 
     CLIR, g0, 0;
-    CLIR, g1, 32;
+    MOV(g1, arg1);
     encrypt_loop:
-        CALL, encrypt_block; // falta ciclo de bloques
+        call, encrypt_block; // falta ciclo de bloques
         SUMI, arg0, arg0, 16; // moverse a siguiente bloque 
         SUMI, g0, g0, 1;
         JILT, g0, g1, encrypt_loop;
-    
-    JMP, end;
+    POP(lr)
+    JBA;
 
-/* Ejecuta la expansion de llaves
+/* Ejecuta el cifrado de bloque
 args:
     - arg0 puntero al bloque a encriptar
 ret:
@@ -86,22 +152,31 @@ encrypt_block:
     STV, v0, arg0, 0;
     JBA;
 
+/* Descifrado
+args:
+    - arg0 puntero a datos
+    - arg1 bloques 
+ret:
+    - arg0 basura
+    - arg1 basura
+*/
 decrypt:   
+    PUSH(lr);
     CLIR, t3, 'D';
     STM, t3, t2, 0;
-    CLIR, arg0, RAM_BASE;
 
     CLIR, g0, 0;
-    CLIR, g1, 1; // cambiar por n bloques
+    MOV(g1, arg1);
     decrypt_loop:
         call, decrypt_block; // falta ciclo de bloques
         SUMI, arg0, arg0, 16; // moverse a siguiente bloque 
         SUMI, g0, g0, 1;
         JILT, g0, g1, decrypt_loop;
     
+    POP(lr)
     JMP, end;
 
-/* Ejecuta la expansion de llaves
+/* Ejecuta el descifrado de bloque 
 args:
     - arg0 puntero al bloque a encriptar
 ret:
@@ -188,7 +263,7 @@ key_expansion:
         VAES_SUB, v1, v1, zero; // subword
         // obtener rcon 
         MOV(arg0, g0);
-        CALL, get_rcon; // rcon está en arg0
+        call, get_rcon; // rcon está en arg0
         VXOR, v1, v1, arg0; // aplicar rcon
         VAES_WXOR, v2, v0, v1; // generar llave de próxima ronda 
         
