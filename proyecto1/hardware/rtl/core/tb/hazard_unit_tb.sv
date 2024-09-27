@@ -40,6 +40,11 @@ module hazard_unit_tb;
     .ex_op2_forward(ex_op2_forward)
   );
 
+   initial begin
+    $monitor("Time: %0t | reset: %b | de_rs1: %0d | de_rs2: %0d | ex_rs1: %0d | ex_rs2: %0d | ex_rd: %0d | ex_pc_src: %b | ex_result_src: %b | mem_rd: %0d | mem_reg_write: %b | wb_rd: %0d | wb_reg_write: %b | if_stall: %b | de_stall: %b | de_flush: %b | ex_flush: %b | ex_op1_forward: %b | ex_op2_forward: %b",
+              $time, reset, de_rs1, de_rs2, ex_rs1, ex_rs2, ex_rd, ex_pc_src, ex_result_src, mem_rd, mem_reg_write, wb_rd, wb_reg_write, if_stall, de_stall, de_flush, ex_flush, ex_op1_forward, ex_op2_forward);
+   end
+
   
   initial begin
     // No hazards

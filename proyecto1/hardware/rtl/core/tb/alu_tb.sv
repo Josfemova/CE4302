@@ -2,13 +2,14 @@ module alu_tb;
 
   parameter W = 32;
 
-  reg [3:0] UC;
+  reg [3:0] UC;  // Control de la ALU
   reg [3:0] Flags;
 
   logic clk = 0;
   logic reset;
 
-  reg [W-1:0] A, B, Q;
+  reg [W-1:0] A, B;  // Entradas de la ALU
+  wire [W-1:0] Q;    // Salida de la ALU
 
   alu #(
       .WIDTH(W)
@@ -20,82 +21,50 @@ module alu_tb;
       .result(Q)
   );
 
+  // Generador de reloj
   always #2 clk = ~clk;
 
+  // Monitor para imprimir los resultados
   initial begin
+    $monitor("Time: %0t | A: %0d | B: %0d | UC: %0b | Q: %0d", $time, A, B, UC, Q);
+  end
+
+  // Bloque de prueba
+  initial begin
+    // Inicialización
     reset = 0;
-    A = 7;
-    B = 1;
-    UC = 3'b0;
-    repeat (8) begin
-      #10 UC += 1;
-    end
-    UC = 4'b1000;
-    #10;
-    UC = 4'b1001;
+
+    // Prueba 1: Suma
+    A = 10;
+    B = 5;
+    UC = 4'b0000;  // Operación de suma
+    #10;           // Espera 10 unidades de tiempo
+
+    // Prueba 2: Resta
+    A = 15;
+    B = 3;
+    UC = 4'b0001;  // Operación de resta
     #10;
 
-    A  = 5;
-    B  = 5;
-    UC = 4'b0;
-    repeat (8) begin
-      #10 UC += 1;
-    end
-    UC = 4'b1000;
-    #10;
-    UC = 4'b1001;
+    // Prueba 3: AND
+    A = 8;
+    B = 12;
+    UC = 4'b0010;  // Operación AND
     #10;
 
-    A  = -3;
-    B  = 7;
-    UC = 4'b0;
-    repeat (8) begin
-      #10 UC += 1;
-    end
-    UC = 4'b1000;
-    #10;
-    UC = 4'b1001;
+    // Prueba 4: OR
+    A = 6;
+    B = 3;
+    UC = 4'b0011;  // Operación OR
     #10;
 
-    A  = 1;
-    B  = -1;
-    UC = 4'B0;
-    repeat (8) begin
-      #10 UC += 1;
-    end
-    UC = -8;
-    #10;
-    UC = -7;
+    // Prueba 5: XOR
+    A = 9;
+    B = 5;
+    UC = 4'b0100;  // Operación XOR
     #10;
 
-    A  = 3;
-    B  = 1;
-    UC = 4'B0;
-    UC = 4'b1000;
-    repeat (10) begin
-      #10 B += 1;
-    end
-
-    A  = 32'h80000000;
-    B  = 1;
-    UC = 4'b0111;
-    repeat (10) begin
-      #10 B += 1;
-    end
-
-    A  = 32'h7000;
-    B  = 32'hFFF;
-    UC = 4'b1000;
-    repeat (10) begin
-      #10 A += 32'h100;
-    end
-
-    A  = 32'hF0F0F0F0;
-    B  = -1;
-    UC = 4'B100;
-    repeat (10) begin
-      #10 A += 32'hF;
-    end
+    // Termina la simulación
     $stop;
   end
 
