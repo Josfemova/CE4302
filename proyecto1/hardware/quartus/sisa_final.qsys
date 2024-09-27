@@ -403,7 +403,7 @@
   <parameter name="ecc_enabled" value="false" />
   <parameter name="enPRInitMode" value="false" />
   <parameter name="enableDiffWidth" value="false" />
-  <parameter name="initMemContent" value="true" />
+  <parameter name="initMemContent" value="false" />
   <parameter name="initializationFileName" value="/tmp/enc.hex" />
   <parameter name="instanceID" value="ram" />
   <parameter name="memorySize" value="327680" />
@@ -414,7 +414,7 @@
   <parameter name="singleClockOperation" value="true" />
   <parameter name="slave1Latency" value="1" />
   <parameter name="slave2Latency" value="1" />
-  <parameter name="useNonDefaultInitFile" value="true" />
+  <parameter name="useNonDefaultInitFile" value="false" />
   <parameter name="useShallowMemBlocks" value="false" />
   <parameter name="writable" value="true" />
  </module>
@@ -436,7 +436,7 @@
   <parameter name="enPRInitMode" value="false" />
   <parameter name="enableDiffWidth" value="false" />
   <parameter name="initMemContent" value="true" />
-  <parameter name="initializationFileName">/home/josfemova-rs/REPOSITORIES/CE4302/proyecto1/software/implementacion_aes/asm/simd/output_files/simd.hex</parameter>
+  <parameter name="initializationFileName">/home/josfemova-rs/REPOSITORIES/CE4302/proyecto1/software/implementacion_aes/asm/bootrom/output_files/bootrom.hex</parameter>
   <parameter name="instanceID" value="inst" />
   <parameter name="memorySize" value="8192" />
   <parameter name="readDuringWriteMode" value="DONT_CARE" />
