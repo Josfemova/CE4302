@@ -20,10 +20,14 @@ start:
     STM, t2, arg0, 4;
     STM, t0, arg0, 8;
     STM, t2, arg0, 12;
-    /*LDV, v0, arg0, 0;
-    LDV, v1, arg0, 0;
-    VXOR, v0, v0, v1;*/
-    END_SIMUL;
+    // pruebas para ver comportamiento de load hazard
+    /*LDM, t0, arg0, 0;
+    LDM, t1, arg0,4;
+    XOR, t0, t0, t1;
+    LDV, v0, arg0, 0;
+    LDV, v1, arg0, 4;
+    VXOR, v0, v0, v1;
+    END_SIMUL;*/
     
     CALL, key_expansion;
 
@@ -35,21 +39,28 @@ encrypt:
     CLIR, t3, 'E';
     STM, t3, t2, 0;
     CLIR, arg0, RAM_BASE;
-    CALL, encrypt_block; // falta ciclo de bloques
+
+    CLIR, g0, 0;
+    CLIR, g1, 32;
+    encrypt_loop:
+        CALL, encrypt_block; // falta ciclo de bloques
+        SUMI, arg0, arg0, 16; // moverse a siguiente bloque 
+        SUMI, g0, g0, 1;
+        JILT, g0, g1, encrypt_loop;
+    
     JMP, end;
 
 /* Ejecuta la expansion de llaves
 args:
     - arg0 puntero al bloque a encriptar
 ret:
-    - arg0 puntero a siguiente bloque a encriptar
+    - arg0 puntero a bloque encriptado
 */
 encrypt_block:
     CLIR, t0, ENC_HDR_AES_KEY; // puntero al key store
 
     LDV, v0, arg0, 0; // cargar estado
     // OH NOOOOO un riesgo no corregido
-    NOP;// acá hasta saber como resolver
     LDV, v1, t0, 0; // cargar round_key
     VXOR, v0, v0, v1; // add roundkey
 
@@ -58,7 +69,6 @@ encrypt_block:
     encrypt_block_loop:
         SUMI, t0, t0, 16; // aumentar puntero de roundkey
         LDV, v1, t0, 0; // cargar roundkey para esta ronda
-        NOP;
         VAES_SUB, v0, v0, zero; //sub bytes
         VAES_SHIFT, v0, v0, zero; // shift rows 
         VAES_MIX, v0, v0, zero; // mix colums en inmediatamente add roundkey
@@ -70,15 +80,10 @@ encrypt_block:
     // ronda final
     SUMI, t0, t0, 16; // aumentar puntero de roundkey
     LDV, v1, t0, 0; // cargar roundkey para esta ronda
-    NOP;
     VAES_SUB, v0, v0, zero; //sub bytes
     VAES_SHIFT, v0, v0, zero; // shift rows y add roundkey final
     VXOR, v0, v0, v1; // shift rows y add roundkey final
-    NOP;
     STV, v0, arg0, 0;
-    NOP;
-    NOP;
-
     JBA;
 
 decrypt:
