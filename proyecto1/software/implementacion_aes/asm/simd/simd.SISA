@@ -34,6 +34,7 @@ start:
     //LDM, t0, zero, ENC_HDR_OP; // se puede porque imm es de 15 bits, signo extendido
     CLIR, t2, UART_BASE;
     //JINE, t0, zero, decrypt;
+    JMP, decrypt;
    
 encrypt:   
     CLIR, t3, 'E';
@@ -85,10 +86,56 @@ encrypt_block:
     STV, v0, arg0, 0;
     JBA;
 
-decrypt:
+decrypt:   
     CLIR, t3, 'D';
     STM, t3, t2, 0;
+    CLIR, arg0, RAM_BASE;
+
+    CLIR, g0, 0;
+    CLIR, g1, 32;
+    decrypt_loop:
+        CALL, decrypt_block; // falta ciclo de bloques
+        SUMI, arg0, arg0, 16; // moverse a siguiente bloque 
+        SUMI, g0, g0, 1;
+        JILT, g0, g1, decrypt_loop;
+    
     JMP, end;
+
+/* Ejecuta la expansion de llaves
+args:
+    - arg0 puntero al bloque a encriptar
+ret:
+    - arg0 puntero a bloque encriptado
+*/
+decrypt_block:
+    CLIR, t0, ENC_HDR_AES_KEY; // puntero al key store
+    SUMI, t0, t0, 160; // apuntar a última llave
+
+    LDV, v0, arg0, 0; // cargar estado
+    LDV, v1, t0, 0; // cargar round_key
+    VXOR, v0, v0, v1; // add roundkey
+
+    CLIR, t1, 1; // indice loop
+    CLIR, t2, 10; //max iter LT
+    decrypt_block_loop:
+        DIFI, t0, t0, 16; // decrementar puntero de roundkey
+        LDV, v1, t0, 0; // cargar roundkey para esta ronda
+        VAES_ISHIFT, v0, v0, zero; // shift rows 
+        VAES_ISUB, v0, v0, zero; //sub bytes
+        VXOR, v0, v0, v1; // add roundkey
+        VAES_IMIX, v0, v0, zero; // mix colums en inmediatamente add roundkey
+
+        SUMI, t1, t1, 1;
+        JILT, t1, t2, decrypt_block_loop;
+    
+    // ronda final
+    DIFI, t0, t0, 16; // decrementar puntero de roundkey
+    LDV, v1, t0, 0; // cargar roundkey para esta ronda
+    VAES_ISHIFT, v0, v0, zero; // shift rows y add roundkey final
+    VAES_ISUB, v0, v0, zero; //sub bytes
+    VXOR, v0, v0, v1; //add roundkey final
+    STV, v0, arg0, 0;
+    JBA;
 
 
 end:

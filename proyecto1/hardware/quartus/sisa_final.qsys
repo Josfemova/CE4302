@@ -396,7 +396,7 @@
   <parameter name="enPRInitMode" value="false" />
   <parameter name="enableDiffWidth" value="false" />
   <parameter name="initMemContent" value="true" />
-  <parameter name="initializationFileName" value="/tmp/tst.hex" />
+  <parameter name="initializationFileName" value="/tmp/enc.hex" />
   <parameter name="instanceID" value="ram" />
   <parameter name="memorySize" value="327680" />
   <parameter name="readDuringWriteMode" value="OLD_DATA" />
@@ -428,7 +428,7 @@
   <parameter name="enPRInitMode" value="false" />
   <parameter name="enableDiffWidth" value="false" />
   <parameter name="initMemContent" value="true" />
-  <parameter name="initializationFileName">/home/josfemova-rs/REPOSITORIES/CE4302/proyecto1/software/implementacion_aes/asm/escalar/output_files/escalar.hex</parameter>
+  <parameter name="initializationFileName">/home/josfemova-rs/REPOSITORIES/CE4302/proyecto1/software/implementacion_aes/asm/simd/output_files/simd.hex</parameter>
   <parameter name="instanceID" value="inst" />
   <parameter name="memorySize" value="8192" />
   <parameter name="readDuringWriteMode" value="DONT_CARE" />

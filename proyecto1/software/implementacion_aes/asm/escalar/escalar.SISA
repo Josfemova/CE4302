@@ -26,6 +26,7 @@ start:
     //LDM, t0, zero, ENC_HDR_OP; // se puede porque imm es de 15 bits, signo extendido
     CLIR, t2, UART_BASE;
     //JINE, t0, zero, decrypt;
+    //JMP, encrypt;
     
 encrypt:   
     CLIR, t3, 'E';
@@ -33,7 +34,7 @@ encrypt:
     CLIR, arg0, RAM_BASE;
 
     CLIR, g6, 0;
-    CLIR, g7, 1;
+    CLIR, g7, 42;
     encrypt_loop:
         call, encrypt_block; // falta ciclo de bloques
         SUMI, arg0, arg0, 16; // moverse a siguiente bloque 
