@@ -5,7 +5,7 @@ module vrot32 (
 );
     // Variables temporales para cada fila de la matriz 4x4 
     int offset;
-    int bits_to_rot;
+    int unsigned bits_to_rot;
 
     always_comb begin 
         for (int i=0; i<4; i++) begin 

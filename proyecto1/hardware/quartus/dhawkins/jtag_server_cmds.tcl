@@ -219,7 +219,7 @@ proc jtag_read {addr} {
 	}
 
 	# Read 32-bits
-	puts "SERVER: jtag_read $addr"
+	#puts "S: rd $addr"
 	if {[is_system_console]} {
 		if {[catch {master_read_32 $jtag(master) $addr 1} result]} {
 			# JTAG connection lost?
@@ -265,7 +265,7 @@ proc jtag_write {addr data} {
 	}
 
 	# Write 32-bits
-	puts "SERVER: jtag_write $addr $data"
+	#puts "S: wr $addr $data"
 	if {[is_system_console]} {
 		if {[catch {master_write_32 $jtag(master) $addr [list $data]} result]} {
 			# JTAG connection lost?
@@ -384,12 +384,12 @@ proc client_handler {client} {
 		puts "SERVER ($client): empty command"
 	} else {
 		# Execute the command and return the response
-		puts "SERVER ($client): $cmd"
+		#puts "SERVER ($client): $cmd"
 		if {[catch {eval $cmd} rsp]} {
 			puts "SERVER ($client): Invalid command from the client"
 		} else {
 			if {[string length $rsp] > 0} {
-				puts "SERVER ($client): $rsp"
+				#puts "SERVER ($client): $rsp"
 				puts $client $rsp
 			}
 		}

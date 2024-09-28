@@ -18,7 +18,8 @@ module system_tb;
     clk <= 0;
     #5;
   end
-  
+  wire reset;
+  assign reset = ~reset_n;
 
  sisa_final dut(
 		.clk_clk(clk),                //          clk.clk

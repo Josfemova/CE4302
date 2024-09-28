@@ -1,0 +1,36 @@
+#include "../../UTIL.SISA"
+
+#define OFFSET_CMD 0x7040 
+#define OFFSET_CMD_ARG0 0x7044 
+#define OFFSET_CMD_ARG1 0x7048 
+#define OFFSET_CMD_ARG2 0x704c 
+#define OFFSET_LAST_STATUS 0x7050 // 0 si todo bien, 1 si hay error 
+
+#define CMD_JMP_ADDR 1 /* ARG 0 contiene la dirección a saltar */
+#define CMD_PING 2 /* ARG 0 contiene cuantos ciclos se espera, ARG1 cuiantos PINGS */
+
+/* 64 instrucciones MAX */
+
+start:
+    CLIR, t2, UART_BASE;
+    CLIR, t3, 'W';
+    STM, t3, t2, 0;
+    CLIR, t3, 'X';
+    STM, t3, t2, 0;
+    CLIR, t3, 'Z';
+    STM, t3, t2, 0;
+    CLIR, t3, 'V';
+    STM, t3, t2, 0;
+    JLRL, zero, zero, 0; // retornar al inicio
+            
+
+
+
+
+
+
+
+
+
+
+
