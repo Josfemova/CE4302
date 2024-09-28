@@ -77,7 +77,7 @@
    {
       datum baseAddress
       {
-         value = "0";
+         value = "524288";
          type = "String";
       }
    }
@@ -85,7 +85,7 @@
    {
       datum baseAddress
       {
-         value = "8192";
+         value = "524288";
          type = "String";
       }
    }
@@ -166,6 +166,118 @@
       datum baseAddress
       {
          value = "5120";
+         type = "String";
+      }
+   }
+   element sisa_final
+   {
+      datum _originalDeviceFamily
+      {
+         value = "Cyclone V";
+         type = "String";
+      }
+   }
+   element sisa_final
+   {
+      datum _originalDeviceFamily
+      {
+         value = "Cyclone V";
+         type = "String";
+      }
+   }
+   element sisa_final
+   {
+      datum _originalDeviceFamily
+      {
+         value = "Cyclone V";
+         type = "String";
+      }
+   }
+   element sisa_final
+   {
+      datum _originalDeviceFamily
+      {
+         value = "Cyclone V";
+         type = "String";
+      }
+   }
+   element sisa_final
+   {
+      datum _originalDeviceFamily
+      {
+         value = "Cyclone V";
+         type = "String";
+      }
+   }
+   element sisa_final
+   {
+      datum _originalDeviceFamily
+      {
+         value = "Cyclone V";
+         type = "String";
+      }
+   }
+   element sisa_final
+   {
+      datum _originalDeviceFamily
+      {
+         value = "Cyclone V";
+         type = "String";
+      }
+   }
+   element sisa_final
+   {
+      datum _originalDeviceFamily
+      {
+         value = "Cyclone V";
+         type = "String";
+      }
+   }
+   element sisa_final
+   {
+      datum _originalDeviceFamily
+      {
+         value = "Cyclone V";
+         type = "String";
+      }
+   }
+   element sisa_final
+   {
+      datum _originalDeviceFamily
+      {
+         value = "Cyclone V";
+         type = "String";
+      }
+   }
+   element sisa_final
+   {
+      datum _originalDeviceFamily
+      {
+         value = "Cyclone V";
+         type = "String";
+      }
+   }
+   element sisa_final
+   {
+      datum _originalDeviceFamily
+      {
+         value = "Cyclone V";
+         type = "String";
+      }
+   }
+   element sisa_final
+   {
+      datum _originalDeviceFamily
+      {
+         value = "Cyclone V";
+         type = "String";
+      }
+   }
+   element sisa_final
+   {
+      datum _originalDeviceFamily
+      {
+         value = "Cyclone V";
          type = "String";
       }
    }
@@ -307,10 +419,10 @@
   <parameter name="ecc_enabled" value="false" />
   <parameter name="enPRInitMode" value="false" />
   <parameter name="enableDiffWidth" value="false" />
-  <parameter name="initMemContent" value="false" />
-  <parameter name="initializationFileName">/home/josfemova-rs/REPOSITORIES/CE4302/proyecto1/software/implementacion_aes/asm/escalar/output_files/rsbox.hex</parameter>
+  <parameter name="initMemContent" value="true" />
+  <parameter name="initializationFileName" value="/tmp/enc.hex" />
   <parameter name="instanceID" value="ram" />
-  <parameter name="memorySize" value="131072" />
+  <parameter name="memorySize" value="327680" />
   <parameter name="readDuringWriteMode" value="OLD_DATA" />
   <parameter name="resetrequest_enabled" value="false" />
   <parameter name="simAllowMRAMContentsFile" value="false" />
@@ -318,7 +430,7 @@
   <parameter name="singleClockOperation" value="true" />
   <parameter name="slave1Latency" value="1" />
   <parameter name="slave2Latency" value="1" />
-  <parameter name="useNonDefaultInitFile" value="false" />
+  <parameter name="useNonDefaultInitFile" value="true" />
   <parameter name="useShallowMemBlocks" value="false" />
   <parameter name="writable" value="true" />
  </module>
@@ -340,7 +452,7 @@
   <parameter name="enPRInitMode" value="false" />
   <parameter name="enableDiffWidth" value="false" />
   <parameter name="initMemContent" value="true" />
-  <parameter name="initializationFileName">/home/josfemova-rs/REPOSITORIES/CE4302/proyecto1/software/implementacion_aes/asm/bootrom/output_files/bootrom.hex</parameter>
+  <parameter name="initializationFileName">/home/josfemova-rs/REPOSITORIES/CE4302/proyecto1/software/implementacion_aes/asm/simd/output_files/simd.hex</parameter>
   <parameter name="instanceID" value="inst" />
   <parameter name="memorySize" value="8192" />
   <parameter name="readDuringWriteMode" value="DONT_CARE" />
@@ -487,7 +599,7 @@
    start="SISA_0.data_mem_master"
    end="ext_ram.s1">
   <parameter name="arbitrationPriority" value="1" />
-  <parameter name="baseAddress" value="0x00020000" />
+  <parameter name="baseAddress" value="0x00080000" />
   <parameter name="defaultConnection" value="false" />
  </connection>
  <connection
@@ -519,7 +631,7 @@
  </connection>
  <connection kind="avalon" version="18.1" start="jtag.master" end="ext_ram.s2">
   <parameter name="arbitrationPriority" value="1" />
-  <parameter name="baseAddress" value="0x00020000" />
+  <parameter name="baseAddress" value="0x00080000" />
   <parameter name="defaultConnection" value="false" />
  </connection>
  <connection kind="avalon" version="18.1" start="jtag.master" end="instr_mem.s2">
@@ -576,11 +688,6 @@
    version="18.1"
    start="clk_0.clk_reset"
    end="core_ram.reset1" />
- <connection
-   kind="reset"
-   version="18.1"
-   start="jtag.master_reset"
-   end="SISA_0.cpureg_reset" />
  <interconnectRequirement for="$system" name="qsys_mm.clockCrossingAdapter" value="HANDSHAKE" />
  <interconnectRequirement for="$system" name="qsys_mm.enableEccProtection" value="FALSE" />
  <interconnectRequirement for="$system" name="qsys_mm.insertDefaultSlave" value="FALSE" />

@@ -44,8 +44,8 @@ module top (
   wire clk;
   assign clk = CLOCK_50;
 
-  wire reset;
-  assign reset = SW[0];
+  reg reset;
+  always @(posedge clk)reset <= SW[0];
   
 	assign LEDR[1] = clk;
 	assign LEDR[4] = reset;

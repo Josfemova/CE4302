@@ -15,6 +15,7 @@ pre=build/preproc.s
 # eliminar todo después de numeral, lineas vacías
 # y todo depués del punto y coma 
 cpp $1 \
+    | sed 's/sisa_nl/\n/' \
     | sed 's/\#.*//' \
     | sed 's/:/;/g' \
     | sed '/^$/d' \

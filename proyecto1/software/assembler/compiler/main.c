@@ -2,7 +2,7 @@
 #include "compiler.h"
 #include <string.h>
 #include <stdbool.h>
-
+#include <stdlib.h>
 
 
 /**
@@ -66,6 +66,9 @@ int send_instructions(bool tags_saved){
                 parts[i] = ""; // An empty string
             }
             lines++;
+        }else{
+            fprintf(stderr, "Patrón no reconocido %s en linea %d\n",line, lines);
+            exit(1);
         }
 
         

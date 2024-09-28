@@ -4,11 +4,21 @@ import sys
 ap = argparse.ArgumentParser(description='Convert .txt init file to .mif')
 ap.add_argument("-i","--input", required=True, help="name of input txt")
 ap.add_argument("-o","--output", required=True, help="name of output files (before extension)")
+ap.add_argument("-t","--type", required=True, help="0 es normal (sin header), 1 es imagen en hex")
+
 
 args = vars(ap.parse_args())
 txtfile = open(args["input"],'r')
 miffile = open(args["output"]+".mif",'w')
 hexfile = open(args["output"]+".hex",'w')
+
+typ = int(args["type"])
+radix = 2;
+if typ != 0:
+    radix = 16;
+    txtfile.readline()
+    txtfile.readline()
+
 
 lines = txtfile.readlines()
 if '\n' in lines: lines.remove('\n')
@@ -34,7 +44,7 @@ def get_byte(n, pos):
 addr = 0
 for line in lines:
     line = line.strip('\n')
-    val = int(line,2)
+    val = int(line,radix)
     miffile.write(f"\t{addr:<6X}: {val:X};\n")
 
     #hex file 

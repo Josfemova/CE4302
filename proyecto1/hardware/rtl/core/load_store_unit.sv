@@ -86,12 +86,12 @@ always @(*) begin
         end 
         VECTOR_ACTIVE: begin 
             stall = 1;
-            current_mem_addr = base_addr + ({rd_wait_cycles+1,2'b00});
+            current_mem_addr = base_addr + ({rd_wait_cycles[29:0]+29'b1,2'b00});
             out_readdata = saved_readdata;
         end 
         VECTOR_EXIT: begin
             stall = 0;
-            current_mem_addr = base_addr + ({rd_wait_cycles+1,2'b00});
+            current_mem_addr = base_addr + ({rd_wait_cycles[29:0]+29'b1,2'b00});
             out_readdata = saved_readdata;
         end 
     endcase

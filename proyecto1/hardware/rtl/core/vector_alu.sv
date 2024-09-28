@@ -1,11 +1,13 @@
 typedef enum bit [3:0] {
-  VALU_OP_XOR = 4'b0000,  // xor, doubles as aes add roundkey 
-  VALU_OP_ROT = 4'b0001,  // rotwords, for key schedule 
-  VALU_OP_AES_SUBBYTES = 4'b1000,  // aes sub-bytes 
-  VALU_OP_AES_INV_SUBBYTES = 4'b1001,  // aes sub-bytes 
-  VALU_OP_AES_SHIFTROWS = 4'b1010, // aes shift rows
-  VALU_OP_AES_MIX_COLUMNS = 4'b1011, // aes mix columns
-  VALU_OP_AES_KEYSCHE_XOR = 4'b1100 // el xor ese raro del key schedule con el resultado de la transformacion
+  VALU_OP_XOR =                 4'b0000,  // xor, doubles as aes add roundkey 
+  VALU_OP_ROT =                 4'b0001,  // rotwords, for key schedule 
+  VALU_OP_AES_SUBBYTES =        4'b1000,  // aes sub-bytes 
+  VALU_OP_AES_INV_SUBBYTES =    4'b1001,  // aes sub-bytes 
+  VALU_OP_AES_SHIFTROWS =       4'b1010, // aes shift rows
+  VALU_OP_AES_INV_SHIFTROWS =   4'b1011, // aes shift rows
+  VALU_OP_AES_MIX_COLUMNS =     4'b1100, // aes mix columns
+  VALU_OP_AES_INV_MIX_COLUMNS = 4'b1101, // aes mix columns
+  VALU_OP_AES_KEYSCHE_XOR =     4'b1110 // el xor ese raro del key schedule con el resultado de la transformacion
 } valu_op;
 
 /// Como sacar el key schedule? 
@@ -29,7 +31,9 @@ module vector_alu #(
   wire [127:0] subb_res;
   wire [127:0] isubb_res;
   wire [127:0] shiftrows_res;
+  wire [127:0] ishiftrows_res;
   wire [127:0] mixcols_res;
+  wire [127:0] imixcols_res;
   wire [127:0] kschxor_res;
 
 logic [127:0] opA;
@@ -39,7 +43,9 @@ logic [127:0] opA;
   sub_bytes subbinst(.state_in(op1), .state_out(subb_res));
   inv_sub_bytes isubbinst(.state_in(op1), .state_out(isubb_res));
   shift_rows srinst(.state_in(op1), .state_out(shiftrows_res));
+  inv_shift_rows isrinst(.state_in(op1), .state_out(ishiftrows_res));
   mix_columns mixcols(.state_in(op1), .state_out(mixcols_res));
+  inv_mix_columns imixcols(.state_in(op1), .state_out(imixcols_res));
   key_schedule kschxor(.K(op1), .result(op2[31:0]), .round_key(kschxor_res));
 
 
@@ -65,9 +71,19 @@ logic [127:0] opA;
           opA = shiftrows_res;
           result = xor_res;
         end
+      VALU_OP_AES_INV_SHIFTROWS: 
+        begin
+          opA = ishiftrows_res;
+          result = xor_res;
+        end
       VALU_OP_AES_MIX_COLUMNS: 
         begin
           opA = mixcols_res;
+          result = xor_res;
+        end
+      VALU_OP_AES_INV_MIX_COLUMNS: 
+        begin
+          opA = imixcols_res;
           result = xor_res;
         end
       VALU_OP_AES_KEYSCHE_XOR: 
