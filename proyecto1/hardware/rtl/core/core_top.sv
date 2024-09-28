@@ -42,8 +42,7 @@ module core_top (
     input s2_read,
     output reg [31:0] s2_readdata,
     input s2_write,
-    input [31:0] s2_writedata,
-    input s_reset
+    input [31:0] s2_writedata
 );
 
   assign instr_memory_byteenable = 4'b1111;

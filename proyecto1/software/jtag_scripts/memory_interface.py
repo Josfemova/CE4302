@@ -28,6 +28,15 @@ SCRATCH_LAST_STATUS =0x7050 # 0 si todo bien, 1 si hay error
 CMD_JMP_ADDR =1 # ARG 0 contiene la dirección a saltar
 CMD_PING =2 # ARG 0 contiene cuantos ciclos se espera, ARG1 cuiantos PINGS
 
+SCRATCH_CYCLEL_S     =0x7050 # 0 si todo bien, 1 si hay error 
+SCRATCH_CYCLEH_S     =0x7054 # 0 si todo bien, 1 si hay error 
+SCRATCH_INSTR_CNTL_S =0x7058 # 0 si todo bien, 1 si hay error 
+SCRATCH_INSTR_CNTH_S =0x705c # 0 si todo bien, 1 si hay error 
+
+SCRATCH_CYCLEL_E     =0x7060 # 0 si todo bien, 1 si hay error 
+SCRATCH_CYCLEH_E     =0x7064 # 0 si todo bien, 1 si hay error 
+SCRATCH_INSTR_CNTL_E =0x7068 # 0 si todo bien, 1 si hay error 
+SCRATCH_INSTR_CNTH_E =0x706c # 0 si todo bien, 1 si hay error 
 
 import socket
 from time import sleep
@@ -67,8 +76,8 @@ def load_code(socket, txt_file):
             # escribir cada 32 bits
             write_mem(socket, IRAM_LOADABLE_CODE_ADDR + (i<<2), val)
             i+=1
-    write_mem(socket, OFFSET_CMD_ARG0, IRAM_LOADABLE_CODE_ADDR)
-    write_mem(socket, OFFSET_CMD, CMD_JMP_ADDR)
+    write_mem(socket, SCRATCH_CMD_ARG0, IRAM_LOADABLE_CODE_ADDR)
+    write_mem(socket, SCRATCH_CMD, CMD_JMP_ADDR)
 
 def load_data(socket, data_txt_file, key_txt_file, op):
     """
@@ -76,9 +85,11 @@ def load_data(socket, data_txt_file, key_txt_file, op):
     """
     with open(data_txt_file) as data:
         i=0
+        rows = int(data.readline())
+        cols = int(data.readline())
         for line in data:
             # convertir desde binario
-            val = int(line.strip('\n'), 2) 
+            val = int(line.strip('\n'), 16) 
             # escribir cada 32 bits
             write_mem(socket, RAM_BASE + (i<<2), val)
             i+=1
@@ -86,7 +97,7 @@ def load_data(socket, data_txt_file, key_txt_file, op):
         if(i%4 != 0):
             error("Datos provistos requieren padding!")
 
-        blocks = i/4
+        blocks = i//4
         print(f"Se escribieron {blocks} bloques a memoria")
         
         with open(key_txt_file) as key:

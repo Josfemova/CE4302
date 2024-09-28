@@ -1,9 +1,12 @@
 #include "../UTIL.SISA"
 
+#define OFFSET_CMD 0x7040 
+
 init:
     CLIR, sp, STACK_START; // incializar stack pointer
     
 start:
+    
     CLIR, arg0, ENC_HDR_AES_KEY;
     CLIR, t0, 0xCDEF;
     CLIR, t1, 0x89AB;
@@ -20,7 +23,7 @@ start:
     
     CLIR, t4, 0;
     STM, t4, zero, ENC_HDR_OP; // forzar encripcion
-    CLIR, t0, 0x52; 
+    CLIR, t0, 0x4; 
     STM, t0, zero, ENC_HDR_BLOCKS; // solo desencriptar 2 bloques 
     /////// HASTA AQUI SOLO PARA SIMUL
     
@@ -215,7 +218,13 @@ decrypt_block:
 
 end:
    END_SIMUL;
+   CLIR, t0, OFFSET_CMD;
+   LDM, t1, t0, 0;
+   CLIR, t2, 0xDEDE;
+   JIEQ, t1, t2, jump_to_rom;
    JMP, end;
+jump_to_rom:
+   JLRL, zero, zero, 0; // devolverse a ROM 
 
 
 /* Obtiene el valor de rcon para una ronda
@@ -235,7 +244,7 @@ get_rcon:
         SLRI, t3, arg0, 9;
         SLL, arg0, t2, t3; // 0x1B << t3
     get_rcon_end:
-        JBA;
+    JBA;
 
 /* Ejecuta la expansion de llaves
 args:

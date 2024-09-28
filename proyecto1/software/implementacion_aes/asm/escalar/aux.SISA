@@ -18,7 +18,7 @@ get_rcon:
         SLRI, t3, arg0, 9;
         SLL, arg0, t2, t3; // 0x1B << t3
     get_rcon_end:
-        JBA;
+    JBA;
 
 
 //________________/ Add Round Key /__________________________________________

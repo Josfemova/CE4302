@@ -313,6 +313,22 @@
          type = "String";
       }
    }
+   element sisa_final
+   {
+      datum _originalDeviceFamily
+      {
+         value = "Cyclone V";
+         type = "String";
+      }
+   }
+   element sisa_final
+   {
+      datum _originalDeviceFamily
+      {
+         value = "Cyclone V";
+         type = "String";
+      }
+   }
 }
 ]]></parameter>
  <parameter name="clockCrossingAdapter" value="HANDSHAKE" />
@@ -403,7 +419,7 @@
   <parameter name="ecc_enabled" value="false" />
   <parameter name="enPRInitMode" value="false" />
   <parameter name="enableDiffWidth" value="false" />
-  <parameter name="initMemContent" value="false" />
+  <parameter name="initMemContent" value="true" />
   <parameter name="initializationFileName" value="/tmp/enc.hex" />
   <parameter name="instanceID" value="ram" />
   <parameter name="memorySize" value="327680" />
@@ -414,7 +430,7 @@
   <parameter name="singleClockOperation" value="true" />
   <parameter name="slave1Latency" value="1" />
   <parameter name="slave2Latency" value="1" />
-  <parameter name="useNonDefaultInitFile" value="false" />
+  <parameter name="useNonDefaultInitFile" value="true" />
   <parameter name="useShallowMemBlocks" value="false" />
   <parameter name="writable" value="true" />
  </module>
@@ -436,7 +452,7 @@
   <parameter name="enPRInitMode" value="false" />
   <parameter name="enableDiffWidth" value="false" />
   <parameter name="initMemContent" value="true" />
-  <parameter name="initializationFileName">/home/josfemova-rs/REPOSITORIES/CE4302/proyecto1/software/implementacion_aes/asm/bootrom/output_files/bootrom.hex</parameter>
+  <parameter name="initializationFileName">/home/josfemova-rs/REPOSITORIES/CE4302/proyecto1/software/implementacion_aes/asm/simd/output_files/simd.hex</parameter>
   <parameter name="instanceID" value="inst" />
   <parameter name="memorySize" value="8192" />
   <parameter name="readDuringWriteMode" value="DONT_CARE" />
@@ -672,11 +688,6 @@
    version="18.1"
    start="clk_0.clk_reset"
    end="core_ram.reset1" />
- <connection
-   kind="reset"
-   version="18.1"
-   start="jtag.master_reset"
-   end="SISA_0.cpureg_reset" />
  <interconnectRequirement for="$system" name="qsys_mm.clockCrossingAdapter" value="HANDSHAKE" />
  <interconnectRequirement for="$system" name="qsys_mm.enableEccProtection" value="FALSE" />
  <interconnectRequirement for="$system" name="qsys_mm.insertDefaultSlave" value="FALSE" />
