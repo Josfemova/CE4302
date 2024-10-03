@@ -395,6 +395,8 @@ module core_top (
           // prioridad de escritura a s1
           if(s1_write) begin 
               case(s1_addr)
+                  4'h2: manual_step_en <= s1_writedata;
+                  4'h3: manual_steps <= s1_writedata;
                   default:
                       if(s1_addr[4]) begin // scratch_mem
                           scratch_mem[s1_addr[3:0]] <= s1_writedata;

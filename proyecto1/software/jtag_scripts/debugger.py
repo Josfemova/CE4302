@@ -53,7 +53,7 @@ class Debugger(cmd.Cmd):
 
     def do_step(self, arg):
         'Usage: step <step count>. Step the paused cpu a given number of cycles'
-        state_str = "if: 0x{:08X}\tde: 0x{:08X}\tmem: 0x{:08X}\tex: 0x{:08X}\twb: 0x{:08x}"
+        state_str = "if: 0x{:08X}\tde: 0x{:08X}\tex: 0x{:08X}\tmem: 0x{:08X}\twb: 0x{:08x}"
         #try:
         steps = 1
         if arg != "":
@@ -81,7 +81,7 @@ class Debugger(cmd.Cmd):
         sp = args.split()
         datafile = sp[0]
         keyfile  = sp[1]
-        op = 0 if (sp[1] == "enc") else 1
+        op = 0 if (sp[2] == "enc") else 1
         mi.load_data(self.socket, datafile, keyfile, op)
         self.data_loaded = True
 
