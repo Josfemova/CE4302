@@ -1,5 +1,5 @@
 #!/bin/sh
-name=bootrom
+name=simd
 
 compiler_dir = ../../../assembler/compiler
 

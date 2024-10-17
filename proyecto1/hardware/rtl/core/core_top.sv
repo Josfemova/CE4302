@@ -42,8 +42,7 @@ module core_top (
     input s2_read,
     output reg [31:0] s2_readdata,
     input s2_write,
-    input [31:0] s2_writedata,
-    input s_reset
+    input [31:0] s2_writedata
 );
 
   assign instr_memory_byteenable = 4'b1111;
@@ -134,6 +133,8 @@ module core_top (
   // ========= Debugging ========/ 
   wire clk_internal;
   reg [63:0] cycle;
+  reg [63:0] instr_cnt; // cuenta cuantas instrucciones llegaron a wb
+  reg [31:0] vstall_cnt; // cuenta cuantos ciclos se perdieron en stalls del vector
   reg [31:0] manual_step_en = 32'b0;
   reg [31:0] manual_steps;
   reg [15:0][31:0] scratch_mem; // regs vacíos RW
@@ -143,7 +144,8 @@ module core_top (
   wire [31:0][31:0] csrs_ro = {
       scratch_mem,    // 0x40
       128'b0,         // 0x30 - 0x34 - 0x38 - 0x3c
-      96'b0,          // 0x24 - 0x28 - 0x2c
+      instr_cnt,      // 0x28 - 0x2c
+      vstall_cnt,          // 0x24
       instr_wb,       // 0x20
       instr_mem,      // 0x1c
       instr_ex,       // 0x18
@@ -173,15 +175,16 @@ module core_top (
   reg last_reset;
   reg last_halt;
   always @(posedge clk) begin 
+    last_reset <= reset;
     if(reset) begin 
-        last_reset<=0;
         last_halt<=0;
+        saved_instruction<=0;
+        use_current_instr_mem_readdata <= 0; // basura en read port
     end else begin 
-        last_reset <= reset;
         last_halt <= halt_cpu;
         // magia a ver si arreglo el halt
         use_current_instr_mem_readdata <= (instr_memory_read_en | last_reset) && (~halt_cpu);
-        if(~last_halt) begin 
+        if((~last_halt) && (~last_reset)) begin 
             saved_instruction <= if_instr_rd;
         end else begin 
             saved_instruction <= saved_instruction;
@@ -222,6 +225,7 @@ module core_top (
       .clk(clk_internal),
       .ex_clear(ex_clear),
       .ex_stall(ex_stall),
+      .stall_all(stall_all),
       .de_instr(de_instr),
       .de_pc(de_pc),
       .de_pc_plus4(de_pc_plus4),
@@ -308,7 +312,8 @@ module core_top (
       .wb_stall(wb_stall),
       .mem_instr(mem_instr),
       .mem_reg_write(mem_reg_write),
-      //.mem_mem_write(mem_mem_write),
+      .mem_mem_write(mem_mem_write),
+      .mem_mem_read(mem_mem_read),
       .mem_result_src(mem_result_src),
       .mem_vector_op(mem_vector_op),
       .mem_alu_result(mem_alu_result),
@@ -374,10 +379,14 @@ module core_top (
           manual_step_en <= 0;
           manual_steps <= 0;
           cycle <= 0;
+          instr_cnt <= 0;
+          vstall_cnt <= 0;
           s1_readdata <= 1'b0;
           s2_readdata <= 1'b0;
       end else begin
           cycle <= (halt_cpu) ? cycle : cycle+1; //aumentar contador de ciclos
+          instr_cnt <= ((halt_cpu | wb_stall) || wb_instr == 32'b0) ? instr_cnt : instr_cnt +1;
+          vstall_cnt <= (halt_cpu | (~stall_all))?  vstall_cnt : vstall_cnt + 1; 
           if(manual_step_en[0] && (manual_steps != 0)) begin 
               manual_steps <= manual_steps -1; //disminuir steps
           end
@@ -386,6 +395,8 @@ module core_top (
           // prioridad de escritura a s1
           if(s1_write) begin 
               case(s1_addr)
+                  4'h2: manual_step_en <= s1_writedata;
+                  4'h3: manual_steps <= s1_writedata;
                   default:
                       if(s1_addr[4]) begin // scratch_mem
                           scratch_mem[s1_addr[3:0]] <= s1_writedata;

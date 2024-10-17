@@ -1,0 +1,686 @@
+#include "../UTIL.SISA"
+#define BLOCK_SIZE 16
+
+/* Obtiene el valor de rcon para una ronda
+args: 
+    - arg0: # de ronda de key expansion empieza en 0
+ret:
+    - arg0: valor de rcon
+*/
+get_rcon:
+    CLIR, t0, 0x01; // valor rcon ronda 0
+    CLIR, t1, 0x100; // valor que se debe reemplazar por 1B
+    CLIR, t2, 0x1B;
+    SLL, arg0, t0, arg0;
+    JILT, arg0, t1, get_rcon_end;
+    get_rcon_gt_0x100:
+        // Obtener cuantos shifts a la izquierda se necesitan
+        SLRI, t3, arg0, 9;
+        SLL, arg0, t2, t3; // 0x1B << t3
+    get_rcon_end:
+    JBA;
+
+
+//________________/ Add Round Key /__________________________________________
+
+/* Realiza la op de add_roundkey
+args: 
+    - arg0: direccion del estado
+    - arg1: direccion de roundkey
+ret:
+    - arg0: direccion del estado
+    - arg1: direccion de roundkey
+*/
+add_roundkey:
+    CLIR, t0, 0; // indice i
+    CLIR, t1, BLOCK_SIZE; // condicion loop
+    MOV(t3, arg0); // ptr_data
+    MOV(t4, arg1); // ptr_key
+    add_roundkey_loop:
+        LDM, t5, t3, 0; // t5 = *ptr_data
+        LDM, t6, t4, 0; // t6 = *ptr_key
+        XOR, t5, t5, t6; // data = data ^ key
+        
+        STM, t5, t3,0; // *ptr_data = data
+        
+        // mover punteros a siguientes 32bits
+        SUMI, t3, t3, 4; 
+        SUMI, t4, t4, 4; 
+        SUMI, t0,t0, 4; // i=i+4
+        JILT, t0, t1, add_roundkey_loop;
+    JBA;    
+        
+//________________/ Sub Bytes /__________________________________________
+
+/* Realiza la op de add_subbytes
+args: 
+    - arg0: direccion del estado
+    - arg1: dirección de SBOX (puede modificar si es subbytes normal o inverso)
+ret:
+    - arg0: direccion del estado
+*/
+subbytes:
+    PUSH(lr)
+    CLIR, t4, 0; // word_offset en bits
+    MOV(t5, arg0); // puntero para recorrer estado palabra por palabra
+    CLIR, t6, 16; // max val para word_offset
+    subbytes_loop_words:
+        SUM, t7, t5, t4; 
+        LDM, arg0, t7, 0; // cargar word a substituir
+        call, subword;
+        // t5 no fue tocado, arg0 contiene reemplazo
+        STM, arg0, t7,0; // guardar bytes reemplazados
+        SUMI, t4, t4, 4; //offset siguiente palabra
+        JILT, t4, t6, subbytes_loop_words;
+    
+    // restaurar arg0 a valor de direccion del estado 
+    MOV(arg0, t5);
+    POP(lr)
+    JBA; 
+    
+
+/* Realiza la op de subbytes a una palabra de 32 bits. No usa t4 en adelante
+args: 
+    - arg0: palabra a reemplazar
+    - arg1: direccion de SBOX a usar (puede ser normal o inverso)
+ret:
+    - arg0: palabra con valor de reemplazo
+    - arg1: direccion de SBOX  usado
+*/
+subword:
+    CLIR, t0, 0; // byte_index
+    CLIR, t1, 4; // max byte_index
+    MOV(t2, arg1);
+    subword_loopbytes:
+        ANDI, t3, arg0, 0xFF; // obtener byte más bajo
+        SLRI, arg0, arg0, 8; // mover word a la derecha, hacer espacio en MSB
+
+        // t3 es offset en si son direccionados como bytes, pero como words?
+        SLLI, t3, t3, 2; // Multiplicar por 4 para obtener offset real
+
+        // Acá t3 es el offset del addres desde la base del SBOX, 
+        // para realizar el reemplazo entonces
+        SUM, t3, t3, t2; // dirección en el SBOX
+        LDM, t3, t3, 0; // t3 obtiene el valor de reemplazo
+        SLLI, t3, t3, 24; // mover t3 a MSB
+
+        OR, arg0, arg0, t3; // agregar valor al MSB 
+
+        SUMI, t0, t0, 1; // byte_index +=1
+        JILT, t0, t1, subword_loopbytes;
+    // todos los bytes han sido reemplazados y arg0 contiene la palabra reemplazada!
+    JBA;
+
+//________________/ Shift Rows /__________________________________________
+ 
+/* Realiza la op de shiftrows a todo el estado 
+args: 
+    - arg0: direccion del estado
+ret:
+    - arg0: dirección del estado
+*/
+shift_rows: 
+    // cargar las 4 palabras, cada una como una columna
+    LDM, t0, arg0, 0; // col0
+    LDM, t1, arg0, 4; // col1
+    LDM, t2, arg0, 8; // col2
+    LDM, t3, arg0, 12; // col3
+
+    CLIR, t4, 0xFF;
+    SLLI, t8, t4, 8; // inmediato es de 16 bits con signo :c
+    SLLI, t4, t4, 16; // 0xFF0000 mascara 3er elemento
+    SLLI, t5, t4, 8; // 0xFF000000 mascara 4to elemento
+
+    // columna 0
+    ANDI, t6, t0, 0xFF; // sacar b0 de col0
+    AND, t7, t1, t8; // sacar b1 de col1
+    OR, t6, t6, t7; // juntar primeros dos bytes
+    AND, t7, t2, t4; // sacar b2 de col2
+    OR, t6, t6, t7; // junta con 3er byte
+    AND, t7, t3, t5; // sacar b3 de col3
+    OR, t6, t6, t7; // juntar 4to byte 
+    
+    STM, t6, arg0, 0; // guardar columna 0 
+
+    // columna 1
+    ANDI, t6, t1, 0xFF; // sacar b0 de col1
+    AND, t7, t2, t8; // sacar b1 de col2
+    OR, t6, t6, t7;
+    AND, t7, t3, t4; // sacar b2 de col3
+    OR, t6, t6, t7;
+    AND, t7, t0, t5; // sacar b3 de col0
+    OR, t6, t6, t7; 
+
+    STM, t6, arg0, 4; // guardar columna 1
+
+    // columna 2
+    ANDI, t6, t2, 0xFF; // sacar b0 de col2
+    AND, t7, t3, t8; // sacar b1 de col3
+    OR, t6, t6, t7;
+    AND, t7, t0, t4; // sacar b2 de col0
+    OR, t6, t6, t7;
+    AND, t7, t1, t5; // sacar b3 de col1
+    OR, t6, t6, t7; 
+
+    STM, t6, arg0, 8; // guardar columna 2
+
+    // columna 3
+    ANDI, t6, t3, 0xFF; // sacar b0 de col3
+    AND, t7, t0, t8; // sacar b1 de col0
+    OR, t6, t6, t7;
+    AND, t7, t1, t4; // sacar b2 de col1
+    OR, t6, t6, t7;
+    AND, t7, t2, t5; // sacar b3 de col2
+    OR, t6, t6, t7; 
+
+    STM, t6, arg0, 12; // guardar columna 3
+    JBA;
+
+
+/* Realiza la op de shiftrows a todo el estado 
+args: 
+    - arg0: direccion del estado
+ret:
+    - arg0: dirección del estado
+*/
+inv_shift_rows:
+    // cargar las 4 palabras, cada una como una columna
+    LDM, t0, arg0, 0; // col0
+    LDM, t1, arg0, 4; // col1
+    LDM, t2, arg0, 8; // col2
+    LDM, t3, arg0, 12; // col3
+
+    CLIR, t4, 0xFF;
+    SLLI, t8, t4, 8; // inmediato es de 16 bits con signo :c
+    SLLI, t4, t4, 16; // 0xFF0000 mascara 3er elemento
+    SLLI, t5, t4, 8; // 0xFF000000 mascara 4to elemento
+
+    // columna 0
+    ANDI, t6, t0, 0xFF; // sacar b0 de col0
+    AND, t7, t3, t8; // sacar b1 de col3
+    OR, t6, t6, t7; // juntar primeros dos bytes
+    AND, t7, t2, t4; // sacar b2 de col2
+    OR, t6, t6, t7; // junta con 3er byte
+    AND, t7, t1, t5; // sacar b3 de col1
+    OR, t6, t6, t7; // juntar 4to byte 
+    
+    STM, t6, arg0, 0; // guardar columna 0 
+
+    // columna 1
+    ANDI, t6, t1, 0xFF; // sacar b0 de col1
+    AND, t7, t0, t8; // sacar b1 de col0
+    OR, t6, t6, t7;
+    AND, t7, t3, t4; // sacar b2 de col3
+    OR, t6, t6, t7;
+    AND, t7, t2, t5; // sacar b3 de col2
+    OR, t6, t6, t7; 
+
+    STM, t6, arg0, 4; // guardar columna 1
+
+    // columna 2
+    ANDI, t6, t2, 0xFF; // sacar b0 de col2
+    AND, t7, t1, t8; // sacar b1 de col1
+    OR, t6, t6, t7;
+    AND, t7, t0, t4; // sacar b2 de col0
+    OR, t6, t6, t7;
+    AND, t7, t3, t5; // sacar b3 de col3
+    OR, t6, t6, t7; 
+
+    STM, t6, arg0, 8; // guardar columna 2
+
+    // columna 3
+    ANDI, t6, t3, 0xFF; // sacar b0 de col3
+    AND, t7, t2, t8; // sacar b1 de col2
+    OR, t6, t6, t7;
+    AND, t7, t1, t4; // sacar b2 de col1
+    OR, t6, t6, t7;
+    AND, t7, t0, t5; // sacar b3 de col0
+    OR, t6, t6, t7; 
+
+    STM, t6, arg0, 12; // guardar columna 3
+    JBA;
+
+
+//________________/ Mix Columns /__________________________________________
+
+/* Aplica la operación de rotword
+args:
+    - arg0 operando a (byte)
+    - arg1 operando b (byte)
+ret:
+    - arg0 resultado (byte)  
+    - arg1 basura >:) 
+*/
+gf_mult:
+    // arg1 operando b
+    // t0 operando a (temp)
+    MOV(t0, arg0);
+    // arg0 resultado
+    MOV(arg0, zero);
+    // t1 constante 0x1B
+    CLIR, t1, 0x1B; 
+    // t2 indice loop
+    // t3 max indice loop
+    MOV(t2, zero);
+    CLIR, t3, 8;
+    // libres t4 en adelante
+    gf_mult_loop:
+        ANDI, t4, arg1, 0x1;
+        JIEQ, t4, zero, gf_mult_loop_lbns;
+        
+        XOR, arg0, arg0, t0; // result^=temp
+        
+        gf_mult_loop_lbns: // low bit notset
+        ANDI, t4, t0, 0x80; // temp & 0x80 
+        SLLI, t0, t0, 1; // temp<<=1
+        JIEQ, t4, zero, gf_mult_loop_hbns;
+
+        XOR, t0, t0, t1; // temp^=0x1B
+
+        gf_mult_loop_hbns: // high bit not set
+        SLRI, arg1, arg1, 1; // desplazar b a la derecha
+
+        SUMI, t2, t2, 1;
+        JILT, t2, t3, gf_mult_loop;
+
+    //arg0 contiene el resultado acá, vamos a cortar el byte
+    ANDI, arg0, arg0, 0xFF;
+    JBA;
+
+
+/* Aplica la operación de mix columns 
+args:
+    - arg0 estado de entrada (puntero)
+ret:
+    - arg0 estado de salida (mismo puntero)
+*/
+mix_columns:
+    PUSH(lr)
+    PUSH(g0) // indice de palabra
+    PUSH(g1) // max iteraciones 
+    PUSH(g2) // puntero resultado 
+
+    MOV(g0, zero);
+    CLIR, g1, 4;
+    MOV(g2, arg0);
+
+    mix_columns_loop:
+        LDM, arg0, g2, 0;
+        call, mix_col; //mixcol(palabra actual)
+        STM, arg0, g2, 0; //guardar palabra actual
+
+        SUMI, g2, g2, 4; // aumentar puntero
+        SUMI, g0, g0, 1;
+        JILT, g0, g1, mix_columns_loop;
+
+    DIFI, arg0, g2, 16; // restaurar puntero a valor original
+    POP(g2)
+    POP(g1)
+    POP(g0)
+    POP(lr)
+    JBA;
+
+/* Aplica la operación de mix columns 
+args:
+    - arg0 columna a mezclar (palabra)
+ret:
+    - arg0 columna mezclada (palabra)
+*/
+mix_col:
+    PUSH(lr)
+    PUSH(g0)
+    PUSH(g1)
+    PUSH(g2)
+    PUSH(g3)
+    PUSH(g4) // acumula col0
+    PUSH(g5) // acumula col1
+    PUSH(g6) // acumula col2
+    PUSH(g7) // acumula col3
+    
+    ANDI, g0, arg0, 0xFF; // byte 0
+    SLRI, g1, arg0, 8;
+    ANDI, g1, g1, 0xFF; // byte 1
+    SLRI, g2, arg0, 16;
+    ANDI, g2, g2, 0xFF; // byte 2
+    SLRI, g3, arg0, 24; // byte 3
+
+    // columna 0
+    CLIR, arg0, 0x2;
+    MOV(arg1, g0); 
+    call, gf_mult; // GF_Mult(0x02, column[0])
+    MOV(g4, arg0); // acumular resultado 
+    CLIR, arg0, 0x3;
+    MOV(arg1, g1);
+    call, gf_mult; //GF_Mult(0x03, column[1])
+    XOR, g4, g4, arg0; 
+    XOR, g4, g4, g2; // ^b2
+    XOR, g4, g4, g3; // ^b3
+
+    // columna 1
+    MOV(g5, g0); // agregar b0 
+    CLIR, arg0, 0x2;
+    MOV(arg1, g1); 
+    call, gf_mult; // GF_Mult(0x02, column[1])
+    XOR, g5, g5, arg0; // acumular resultado 
+    CLIR, arg0, 0x3;
+    MOV(arg1, g2); 
+    call, gf_mult; //GF_Mult(0x03, column[2])
+    XOR, g5, g5, arg0; // acumular resultado 
+    XOR, g5, g5, g3; // ^b3 
+
+    // columna 2
+    XOR, g6, g0, g1; // b0 ^ b1 
+    CLIR, arg0, 0x2;
+    MOV(arg1, g2); 
+    call, gf_mult; // GF_Mult(0x02, column[2])
+    XOR, g6, g6, arg0; // acumular resultado 
+    CLIR, arg0, 0x3;
+    MOV(arg1, g3); 
+    call, gf_mult; //GF_Mult(0x03, column[3])
+    XOR, g6, g6, arg0; // acumular resultado 
+
+    //columna 3
+    CLIR, arg0, 0x3;
+    MOV(arg1, g0);
+    call, gf_mult; //GF_Mult(0x03, column[0])
+    MOV(g7, arg0);
+    XOR, g7, g7, g1; // ^b1
+    XOR, g7, g7, g2; // ^b2
+    CLIR, arg0, 0x2;
+    MOV(arg1, g3);
+    call, gf_mult; //GF_Mult(0x02, column[3])
+    XOR, g7, g7, arg0;
+
+    // generar palabra resultante
+    SLLI, g5, g5, 8;
+    SLLI, g6, g6, 16;
+    SLLI, g7, g7, 24;
+    OR, arg0, g4, g5;
+    OR, arg0, arg0, g6;
+    OR, arg0, arg0, g7;
+    
+    // listo, acá arg0 contiene la columna mezclada
+
+    POP(g7)
+    POP(g6)
+    POP(g5)
+    POP(g4)
+    POP(g3)
+    POP(g2)
+    POP(g1)
+    POP(g0)
+    POP(lr)
+    JBA;
+ 
+/* Aplica la operación inversa de mix columns 
+args:
+    - arg0 estado de entrada (puntero)
+ret:
+    - arg0 estado de salida (mismo puntero)
+*/
+inv_mix_columns:
+    PUSH(lr)
+    PUSH(g0) // indice de palabra
+    PUSH(g1) // max iteraciones 
+    PUSH(g2) // puntero resultado 
+
+    MOV(g0, zero);
+    CLIR, g1, 4;
+    MOV(g2, arg0);
+
+    inv_mix_columns_loop:
+        LDM, arg0, g2, 0;
+        call, inv_mix_col; //mixcol(palabra actual)
+        STM, arg0, g2, 0; //guardar palabra actual
+
+        SUMI, g2, g2, 4; // aumentar puntero
+        SUMI, g0, g0, 1;
+        JILT, g0, g1, inv_mix_columns_loop;
+
+    DIFI, arg0, g2, 16; // restaurar puntero a valor original
+    POP(g2)
+    POP(g1)
+    POP(g0)
+    POP(lr)
+    JBA;
+
+/* Aplica la operación de mix column inversa
+args:
+    - arg0 columna a mezclar (palabra)
+ret:
+    - arg0 columna mezclada (palabra)
+*/
+inv_mix_col:
+    PUSH(lr)
+    PUSH(g0)
+    PUSH(g1)
+    PUSH(g2)
+    PUSH(g3)
+    PUSH(g4) // acumula col0
+    PUSH(g5) // acumula col1
+    PUSH(g6) // acumula col2
+    PUSH(g7) // acumula col3
+    
+    ANDI, g0, arg0, 0xFF; // byte 0
+    SLRI, g1, arg0, 8;
+    ANDI, g1, g1, 0xFF; // byte 1
+    SLRI, g2, arg0, 16;
+    ANDI, g2, g2, 0xFF; // byte 2
+    SLRI, g3, arg0, 24; // byte 3
+
+    // ==== columna 0
+    MOV(g4, zero);
+    CLIR, arg0, 0x0E;
+    MOV(arg1, g0); 
+    call, gf_mult;  // GFMULT
+    XOR, g4, g4, arg0;
+    //--------
+    CLIR, arg0, 0x0B;
+    MOV(arg1, g1); 
+    call, gf_mult;  // GFMULT
+    XOR, g4, g4, arg0;
+    //--------
+    CLIR, arg0, 0x0D;
+    MOV(arg1, g2); 
+    call, gf_mult;  // GFMULT
+    XOR, g4, g4, arg0;
+    //--------
+    CLIR, arg0, 0x09;
+    MOV(arg1, g3); 
+    call, gf_mult;  // GFMULT
+    XOR, g4, g4, arg0;
+    //=========================
+
+    // ==== columna 1
+    MOV(g5, zero);
+    CLIR, arg0, 0x09;
+    MOV(arg1, g0); 
+    call, gf_mult;  // GFMULT
+    XOR, g5, g5, arg0;
+    //--------
+    CLIR, arg0, 0x0E;
+    MOV(arg1, g1); 
+    call, gf_mult;  // GFMULT
+    XOR, g5, g5, arg0;
+    //--------
+    CLIR, arg0, 0x0B;
+    MOV(arg1, g2); 
+    call, gf_mult;  // GFMULT
+    XOR, g5, g5, arg0;
+    //--------
+    CLIR, arg0, 0x0D;
+    MOV(arg1, g3); 
+    call, gf_mult;  // GFMULT
+    XOR, g5, g5, arg0;
+    //=========================
+
+    // ==== columna 2
+    MOV(g6, zero);
+    CLIR, arg0, 0x0D;
+    MOV(arg1, g0); 
+    call, gf_mult;  // GFMULT
+    XOR, g6, g6, arg0;
+    //--------
+    CLIR, arg0, 0x09;
+    MOV(arg1, g1); 
+    call, gf_mult;  // GFMULT
+    XOR, g6, g6, arg0;
+    //--------
+    CLIR, arg0, 0x0E;
+    MOV(arg1, g2); 
+    call, gf_mult;  // GFMULT
+    XOR, g6, g6, arg0;
+    //--------
+    CLIR, arg0, 0x0B;
+    MOV(arg1, g3); 
+    call, gf_mult;  // GFMULT
+    XOR, g6, g6, arg0;
+    //=========================
+
+    // ==== columna 3
+    MOV(g7, zero);
+    CLIR, arg0, 0x0B;
+    MOV(arg1, g0); 
+    call, gf_mult;  // GFMULT
+    XOR, g7, g7, arg0;
+    //--------
+    CLIR, arg0, 0x0D;
+    MOV(arg1, g1); 
+    call, gf_mult;  // GFMULT
+    XOR, g7, g7, arg0;
+    //--------
+    CLIR, arg0, 0x09;
+    MOV(arg1, g2); 
+    call, gf_mult;  // GFMULT
+    XOR, g7, g7, arg0;
+    //--------
+    CLIR, arg0, 0x0E;
+    MOV(arg1, g3); 
+    call, gf_mult;  // GFMULT
+    XOR, g7, g7, arg0;
+    //=========================
+
+    // generar palabra resultante
+    SLLI, g5, g5, 8;
+    SLLI, g6, g6, 16;
+    SLLI, g7, g7, 24;
+    OR, arg0, g4, g5;
+    OR, arg0, arg0, g6;
+    OR, arg0, arg0, g7;
+    
+    // listo, acá arg0 contiene la columna mezclada
+
+    POP(g7)
+    POP(g6)
+    POP(g5)
+    POP(g4)
+    POP(g3)
+    POP(g2)
+    POP(g1)
+    POP(g0)
+    POP(lr)
+    JBA;
+ 
+//____________________/ Key Expansion /_____________________________________
+
+/* Aplica la operación de rotword
+args:
+    - arg0 palabra a rotar
+ret:
+    - arg0 palabra rotada
+*/
+rotword:
+    SLRI, t0, arg0, 0; 
+    SLRI, t1, arg0, 8;
+    SLRI, t2, arg0, 16;
+    SLRI, t3, arg0, 24;
+
+    ANDI, t0, t0, 0xFF; //b0
+    ANDI, t1, t1, 0xFF; //b1
+    ANDI, t2, t2, 0xFF; //b2
+    // no es necesario and para MSB en t3
+    MOV(arg0, zero); 
+    OR, arg0, arg0, t0;
+    SLLI, arg0, arg0, 8;
+    OR, arg0, arg0, t3;
+    SLLI, arg0, arg0, 8;
+    OR, arg0, arg0, t2;
+    SLLI, arg0, arg0, 8;
+    OR, arg0, arg0, t1;
+    // palabra rotada en arg0;
+    JBA;
+
+
+/* Ejecuta la expansion de llaves
+args:
+    - arg0 dirección del key store, con la primera llave ya cargada
+ret:
+    - arg0 valor inicial
+*/
+key_expansion:
+    // t0 almacena w0
+    // t1 almacena w1
+    // t2 almacena w2
+    // t3 almacena w3
+    // t4 almacena la transformacion de w3
+    // g0 es el puntero al keystore
+    // g1 es el indice de loop
+    // g2 es el max de iteraciones
+    // g3 es para guardar resultado de subword
+    PUSH(lr)
+    PUSH(arg0)
+    /* realmente estos no los uso antes
+    PUSH(arg1)
+    PUSH(g0)
+    PUSH(g1)
+    PUSH(g2)
+    PUSH(g3)*/
+
+    MOV(g0, arg0);
+    CLIR, g1, 0;
+    CLIR, g2, 10;
+    CLIR, arg1, SBOX_BASE; //SBOX a utilizar para subword
+
+    key_expansion_loop:
+        LDM, arg0, g0, 12; //cargar w3 de ronda anterior
+        call, rotword; // arg0 contiene w3 rotada
+        call, subword; // arg0 contiene w3 substituida
+        MOV(g3, arg0);
+        MOV(arg0, g1); // índice de ronda 
+        call, get_rcon; // arg0 ahora contiene rcon
+        XOR, g3, g3, arg0; // sub(rot(w3)) ^= rcon[i]
+        
+        // cargar estado de ronda anterior
+        LDM, t0, g0, 0;
+        LDM, t1, g0, 4;
+        LDM, t2, g0, 8;
+        LDM, t3, g0, 12;
+
+        XOR, t0, t0, g3;
+        XOR, t1, t1, t0;
+        XOR, t2, t2, t1;
+        XOR, t3, t3, t2;
+
+        // almacenar llave siguiente
+        SUMI, g0, g0, 16;         
+        STM, t0, g0, 0;
+        STM, t1, g0, 4;
+        STM, t2, g0, 8;
+        STM, t3, g0, 12;
+
+
+        // suma y check condicion
+        SUMI, g1, g1, 1;
+        JILT, g1, g2, key_expansion_loop;
+    
+    /* Realmente estos no se usan antes
+    POP(g3)
+    POP(g2)
+    POP(g1)
+    POP(g0)
+    POP(arg1)
+    */
+    POP(arg0)
+    POP(lr)
+    JBA;
+

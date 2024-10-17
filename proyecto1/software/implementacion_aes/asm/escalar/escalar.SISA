@@ -1,38 +1,274 @@
 #include "../UTIL.SISA"
+#define OFFSET_CMD 0x7040 
 
-/*
 init:
-    // NOPS dan tiempo de setup a memorias
-    NOP;
-    NOP;
-    NOP;
-    NOP;
-    NOP*/;
-
+    CLIR, sp, STACK_START; // incializar stack pointer
+    
 start:
-    CLIR, t5, 0x24;
-    MOV(arg0, t5);
-    NOP;
-    NOP;
-    CALL, subbyte;
-    CLIR, t1, 23;
-    CLIR, t2, 44;
-    NOP;
-    NOP;
-    NOP;  
-    JMP, end;
 
+    /*CLIR, arg0, ENC_HDR_AES_KEY;
+    CLIR, t0, 0xCDEF;
+    CLIR, t1, 0x89AB;
+    SLLI, t1, t1, 16;
+    CLIR, t2, 0x4567;
+    CLIR, t3, 0x0123;
+    SLLI, t3, t3, 16;
+    OR, t0, t0, t1;
+    OR, t2, t2, t3;
+    STM, t0, arg0, 0;
+    STM, t2, arg0, 4;
+    STM, t0, arg0, 8;
+    STM, t2, arg0, 12;
+    
+    CLIR, t4, 1;
+    STM, t4, zero, ENC_HDR_OP; // forzar encripcion
+    CLIR, t0, 0x4; 
+    STM, t0, zero, ENC_HDR_BLOCKS; // solo desencriptar 2 bloques 
+    /////// HASTA AQUI SOLO PARA SIMUL*/
 
-/* Sub rutina
-    arg0 - valor a sustituir
+    STM, zero, zero, ENC_HDR_STATUS; 
+    // iniciar clk counter
+    CLIR, g0, CSR_SCRATCH_START;
+    CLIR, arg0, CSR_CYCLEL;
+    CLIR, arg1, CSR_CYCLEH;
+    call, read_64bit_cnt;
+    STM, arg0, g0, 0x10;
+    STM, arg1, g0, 0x14;
+
+    // Iniciar el instruction counter
+    CLIR, arg0, CSR_COMPLETED_INSTRL;
+    CLIR, arg1, CSR_COMPLETED_INSTRH;
+    call, read_64bit_cnt;
+    STM, arg0, g0, 0x18;
+    STM, arg1, g0, 0x1c;
+
+    // key expansion
+    CLIR, arg0, ENC_HDR_AES_KEY;
+    //CLIR, arg1, SBOX_BASE;
+    //call,shift_rows;
+    //JMP, end;////////
+    call, key_expansion;
+
+    LDM, t0, zero, ENC_HDR_OP; // se puede porque imm es de 15 bits, signo extendido
+    CLIR, t2, UART_BASE;
+    CLIR, arg0, RAM_BASE;
+    LDM, arg1, zero, ENC_HDR_BLOCKS;
+    JINE, t0, zero, call_decrypt;
+    call, encrypt;
+    JMP, after_encrypt;
+call_decrypt:
+    //JMP, encrypt;
+    call, decrypt;
+after_encrypt:
+    // termina clk counter
+    CLIR, g0, CSR_SCRATCH_START;
+    CLIR, arg0, CSR_CYCLEL;
+    CLIR, arg1, CSR_CYCLEH;
+    call, read_64bit_cnt;
+    STM, arg0, g0, 0x20;
+    STM, arg1, g0, 0x24;
+
+    // termina el instruction counter
+    CLIR, arg0, CSR_COMPLETED_INSTRL;
+    CLIR, arg1, CSR_COMPLETED_INSTRH;
+    call, read_64bit_cnt;
+    STM, arg0, g0, 0x28;
+    STM, arg1, g0, 0x2c;
+
+    CLIR, g1, 2;
+    STM, g1, zero, ENC_HDR_STATUS; // Decir que status OK
+
+    JMP,end;
+    
+/* Lee counter de 64 bits
+args:
+    - arg0 puntero a low word
+    - arg1 puntero a high word
+ret:
+    - arg0 low word 
+    - arg1 high word 
 */
-subbyte:
-    CLIR, t0, SBOX_BASE_ADDR;
-    SLLI, t1, arg0, 2; // obtiene offset de mem a partir de valor
-    SUM, t2, t0, t1; // direccion final
-    LDM, arg0, t2, 0; // carga byte de reemplazo
+read_64bit_cnt:
+    read_64bit_cnt_loop:
+        LDM, t1, arg1, 0;
+        LDM, t0, arg0, 0;
+        LDM, t2, arg1, 0;
+        JINE, t1, t2, read_64bit_cnt_loop; // si high cambio, tengo que volver a leer
+    MOV(arg0, t0);
+    MOV(arg1, t1);
     JBA;
+
+/* Cifrado
+args:
+    - arg0 puntero a datos
+    - arg1 bloques 
+ret:
+    - arg0 basura
+    - arg1 basura
+*/
+encrypt:   
+    PUSH(lr);
+    CLIR, t3, 'E';
+    STM, t3, t2, 0;
+    CLIR, arg0, RAM_BASE;
+
+    CLIR, g6, 0;
+    MOV(g7, arg1); // cantidad de bloques
+    encrypt_loop:
+        call, encrypt_block; // falta ciclo de bloques
+        SUMI, arg0, arg0, 16; // moverse a siguiente bloque 
+        SUMI, g6, g6, 1;
+        JILT, g6, g7, encrypt_loop;
+    POP(lr);
+    JBA;
+
+/* Ejecuta el cifrado de bloque
+args:
+    - arg0 puntero al bloque a encriptar
+ret:
+    - arg0 puntero a bloque encriptado
+*/
+encrypt_block:
+    PUSH(lr)
+    //PUSH(g0)
+    //PUSH(g1)
+    //PUSH(g2)
+    CLIR, g0, ENC_HDR_AES_KEY; // puntero al key store
+    // arg0 ya tiene el puntero a datos
+    // add roundkey 0
+    MOV(arg1, g0);
+    call, add_roundkey;
+
+
+    CLIR, g1, 1; // indice loop
+    CLIR, g2, 10; //max iter LT
+    encrypt_block_loop:
+        // aumentar puntero roundkey 
+        SUMI, g0, g0, 16;
+        // subytes
+        CLIR, arg1, SBOX_BASE;
+        call, subbytes;
+        // shift rows 
+        call, shift_rows;
+        // mix columns
+        call, mix_columns;
+        // add roundkey
+        MOV(arg1, g0);
+        call, add_roundkey;
+
+
+        SUMI, g1, g1, 1;
+        JILT, g1, g2, encrypt_block_loop;
+    
+    // ronda final
+    // aumentar puntero de roundkey
+    SUMI, g0, g0, 16;
+    // subbytes
+    CLIR, arg1, SBOX_BASE;
+    call, subbytes;
+    // shift rows
+    call, shift_rows;
+    // add roundkey final
+    MOV(arg1, g0);
+    call, add_roundkey;
+    //POP(g2)
+    //POP(g1)
+    //POP(g0)
+    POP(lr)
+    JBA;
+
+/* Descifrado
+args:
+    - arg0 puntero a datos
+    - arg1 bloques 
+ret:
+    - arg0 basura
+    - arg1 basura
+*/
+decrypt:   
+    PUSH(lr)
+    CLIR, t3, 'D';
+    STM, t3, t2, 0;
+
+    CLIR, g6, 0;
+    MOV(g7, arg1); // cantidad de bloques a procesar
+    decrypt_loop:
+        call, decrypt_block; // falta ciclo de bloques
+        SUMI, arg0, arg0, 16; // moverse a siguiente bloque 
+        SUMI, g6, g6, 1;
+        JILT, g6, g7, decrypt_loop;
+    
+    POP(lr)
+    JBA;
+
+/* Ejecuta la desencriptación
+args:
+    - arg0 puntero al bloque a encriptar
+ret:
+    - arg0 puntero a bloque encriptado
+*/
+decrypt_block:
+    PUSH(lr)
+    //PUSH(g0)
+    //PUSH(g1)
+    //PUSH(g2)
+    CLIR, g0, ENC_HDR_AES_KEY; // puntero al key store
+    SUMI, g0, g0, 160; // apuntar a última llave
+    // arg0 ya tiene el puntero a datos
+    // add roundkey 0
+    MOV(arg1, g0);
+    call, add_roundkey;
+
+
+    CLIR, g1, 1; // indice loop
+    CLIR, g2, 10; //max iter LT
+    decrypt_block_loop:
+        // aumentar puntero roundkey 
+        DIFI, g0, g0, 16;
+        // shift rows 
+        call, inv_shift_rows;
+        // subytes
+        CLIR, arg1, RSBOX_BASE;
+        call, subbytes;
+        // add roundkey
+        MOV(arg1, g0);
+        call, add_roundkey;
+        // mix columns
+        call, inv_mix_columns;
+
+
+        SUMI, g1, g1, 1;
+        JILT, g1, g2, decrypt_block_loop;
+    
+
+    // ronda final
+    // decrementar puntero de roundkey
+    DIFI, g0, g0, 16;
+    // shift rows
+    call, inv_shift_rows;
+    // subbytes
+    CLIR, arg1, RSBOX_BASE;
+    call, subbytes;
+    // add roundkey final
+    MOV(arg1, g0);
+    call, add_roundkey;
+    //POP(g2)
+    //POP(g1)
+    //POP(g0)
+    POP(lr)
+    JBA;
+
 
 end:
    END_SIMUL;
+   CLIR, t0, OFFSET_CMD;
+   LDM, t1, t0, 0;
+   CLIR, t2, 0xDEDE;
+   JIEQ, t1, t2, jump_to_rom;
    JMP, end;
+jump_to_rom:
+   JLRL, zero, zero, 0; // devolverse a ROM 
+
+
+
+#include "aux.SISA" //incluir acá porque si no se procesa primero
