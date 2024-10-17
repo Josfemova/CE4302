@@ -1,13 +1,13 @@
 module stage_instruction_fetch (
     input clk,
     input reset,
+    input [31:0] reset_vector_addr,//selecciona direccion donde empieza a ejecutar
     input de_clear,
     input if_stall,
     input de_stall,
     input ex_pc_src,  // selecciona pc source 
     input [31:0] ex_pc_target,
     input [31:0] if_instr_rd,  // de la memoria rom 
-
     output [31:0] if_pc_next_instr_mem,  // a addr de rom
     // outputs para siguiente stage
     output reg [31:0] de_instr,  // a la memoria rom y a reg de decode
@@ -22,7 +22,7 @@ module stage_instruction_fetch (
 
   assign if_pc_plus4 = if_pc + 4;
   assign if_pc_next = (ex_pc_src == 0) ? if_pc_plus4 : ex_pc_target;
-  assign if_pc_next_instr_mem = (reset) ? 32'b0 : if_pc_next;
+  assign if_pc_next_instr_mem = (reset) ? reset_vector_addr : if_pc_next;
 
   always @(posedge clk) begin
     if (reset) if_pc <= -4;
@@ -37,7 +37,7 @@ module stage_instruction_fetch (
       de_pc <= 0;
       de_pc_plus4 <= 0;
     end else if (~de_stall) begin
-      de_instr = if_instr_rd;
+      de_instr = if_instr_rd; // kaka
       de_pc <= if_pc;
       de_pc_plus4 <= if_pc_plus4;
     end

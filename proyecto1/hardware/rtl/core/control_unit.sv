@@ -5,6 +5,7 @@ module control_unit (
 
     output reg_write,  //! enable de write a regsitro
     output mem_write,  //! enable de write a memoria 
+    output mem_read,  //! enable de read a memoria 
     output jump,  //! indica que se tiene una instr de salto 
     output jump_cond,  //! indica que se tiene una instr de salto condicionado
     output [2:0] jump_cond_type,  //! especifica tipo de salto condicional
@@ -18,7 +19,13 @@ module control_unit (
     //! [1] indica si es upper 
     //! [2:3] indican el tipo de operación (entre las que usan inmediato)
     output logic [3:0] imm_src,
-    output logic [1:0] result_src  //! selector de resultado final
+    output logic [1:0] result_src,  //! selector de resultado final
+
+    // Soporte Vectorial. Podría tener una forma más elaborada para soportar 
+    // otras instrucciones que no sean solo puramente vec<-vec con vec ? quizá, 
+    // pero la decisión ingenieril acá es "ese caso de uso no se va a dar tons 
+    // pa que" 
+    output logic vector_op
 );
 
   typedef enum bit [2:0] {
@@ -31,6 +38,11 @@ module control_unit (
     OP_G = 3'b110,  // rs1, rs2, imm_18:2. Jumps condicionales
     OP_H = 3'b111   // reservado
   } op_type;
+  
+  typedef enum bit [2:0] {
+    STM  = 3'b000,
+    STV  = 3'b100
+  } func3_c;
 
   typedef enum bit [2:0] {
     CLIR = 3'b000,
@@ -40,6 +52,7 @@ module control_unit (
 
   typedef enum bit [2:0] {
     LDM  = 3'b000,
+    LDV  = 3'b100,
     JLRL = 3'b010
   } func3_f;
 
@@ -52,14 +65,16 @@ module control_unit (
 
   assign reg_write = ~(op[1:0] == 2'b10);  // aplica para todos excepto tipo c y tipo g
   assign mem_write = (op == OP_C);
+  assign mem_read = (op == OP_F) && (func3 == LDM || func3 == LDV);
   assign jump = (((op == OP_D) && (func3 == JLL)) || ((op == OP_F) && (func3 == JLRL)));
   assign jump_cond = (op == OP_G);
   assign jump_cond_type = func3;  // solo importa para tipo g
   assign alu_src_op1 = (op != OP_D);  // solo queremos que sea uno cuando haya que forzar un 0
   assign alu_src_op2 = (op != OP_A) && (op != OP_G);  // aplica para tipo b,c,d e o f
   assign pc_target_src = (op == OP_F); // source de pc target es ALURES si es JLRL
-
+  
   always @(*) begin
+    vector_op = 0;
     case (op)
       OP_A: begin
         alu_control = {func11[0],func3};
@@ -71,10 +86,11 @@ module control_unit (
         imm_src = ((func3 == 3'b101) || (func3 == 3'b110)) ? 4'b0001 : 4'b0000;  // se extiende en 0 para shifts
         result_src = RESULT_SRC_ALURES;
       end
-      OP_C: begin  // solo STM
+      OP_C: begin  // solo STM y STV
         alu_control = 4'b0;  // suma dir a escribir 
         imm_src = 4'b100;  // usa inmediato con signo extendido
         result_src = RESULT_SRC_ALURES;  // no necesita result
+        vector_op = (func3 == STV);
       end
       OP_D: begin  // CLIR, CUIR y JLL
         alu_control = 4'b0;  // suma 
@@ -93,13 +109,16 @@ module control_unit (
           end
         endcase
       end
-      /*OP_E: begin 
-            
-        end*/
+      OP_E: begin  // vectorial
+        alu_control = {func11[0],func3};
+        imm_src = 4'b0;  // no importa
+        result_src = RESULT_SRC_ALURES;
+      end
       OP_F: begin
         alu_control = 4'b0;  // suma dir de ldm o registro de jump + label
         imm_src = 4'b0000;  // inmediato con extensión de signo
-        result_src = (func3 == LDM) ? RESULT_SRC_MEMRD : RESULT_SRC_ALURES;
+        result_src = (func3 == LDM || func3 == LDV) ? RESULT_SRC_MEMRD : RESULT_SRC_ALURES;
+        vector_op = (func3 == LDV);
       end
       OP_G: begin
         alu_control = 4'b1;  // resta para hacer comp

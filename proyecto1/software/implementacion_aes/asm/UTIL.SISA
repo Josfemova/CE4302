@@ -1,0 +1,32 @@
+#ifndef UTIL_INCLUDE
+#define UTIL_INCLUDE
+
+#include "REGIONS.SISA"
+
+#define STATUS_WAIT 0
+#define STATUS_OK 1
+#define STATUS_ERR 2
+
+/* Funciones de utilidad */
+#define NOP SUM,zero,zero,zero
+#define END_SIMUL SUMI,zero,zero,0
+#define JBA JLRL,zero,lr,0
+#define MOV(rd, rs) SUM,rd,rs,zero
+#define NOT(rd, rs) XORI,rd,rs,-1
+#define NEG(rd, rs) DIF,rd,zero,rs
+#define CALL JLL,lr
+#define JMP JLL,zero
+#define PUSH(rs) SUMI, sp, sp, -4; \
+                 STM, rs, sp, 0; 
+#define POP(rs)  LDM, rs, sp, 0; \
+                 SUMI, sp, sp, 4; 
+#define VPUSH(vrs) SUMI, sp, sp, -16; \
+                 STV, vrs, sp, 0; 
+#define VPOP(vrs)  LDV, vrs, sp, 0; \
+                 SUMI, sp, sp, 16; 
+
+#define TRUE 1
+#define FALSE 0
+#define NO_OFFSET 0
+
+#endif

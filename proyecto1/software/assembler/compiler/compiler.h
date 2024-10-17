@@ -96,6 +96,24 @@ char *typeC_assembly2bin(char *assembly_instruction, char *inmm, char *reg1, cha
  * inmm (immediate value or label).
  */
 char *typeD_assembly2bin(char *assembly_instruction, char *rd, char *inmm);
+
+/**
+ * The function `typeE_assembly2bin` converts an assembly instruction into its binary representation.
+ * 
+ * @param assembly_instruction The assembly instruction is a string that represents the type of
+ * operation to be performed. 
+ * @param rd The parameter "rd" in the function "typeE_assembly2bin" represents the destination
+ * register. It is the register where the result of the operation will be stored.
+ * @param reg1 The parameter "reg1" in the function `typeE_assembly2bin` represents the first register
+ * operand in the assembly instruction. It is a string that specifies the register name or number.
+ * @param reg2 The parameter "reg2" in the function "typeE_assembly2bin" represents the second register
+ * operand in the assembly instruction. It is used to specify the register that will be used as an
+ * input for the operation.
+ * 
+ * @return The function `typeE_assembly2bin` returns a dynamically allocated character array (string)
+ * that represents the binary encoding of the given assembly instruction.
+ */
+char *typeE_assembly2bin(char *assembly_instruction, char *reg, char *reg_or_inmm1, char *reg_or_inmm2);
 /**
  * The function `typeF_assembly2bin` converts an assembly instruction into its binary representation
  * for a specific instruction format.

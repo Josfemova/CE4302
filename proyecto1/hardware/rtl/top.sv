@@ -1,207 +1,74 @@
 //`define ENABLE_HPS
-`default_nettype none
+//`default_nettype none
 
 module top (
-
-    ///////// ADC /////////
-    output ADC_CONVST,
-    output ADC_SCK,
-    output ADC_SDI,
-    input  ADC_SDO,
-
-    ///////// ARDUINO /////////
-    inout [15:0] ARDUINO_IO,
-    inout        ARDUINO_RESET_N,
-
-    ///////// FPGA /////////
-    input FPGA_CLK1_50,
-    input FPGA_CLK2_50,
-    input FPGA_CLK3_50,
+    ///////// CLOCK2 /////////
+    input              CLOCK2_50,
+    ///////// CLOCK3 /////////
+    input              CLOCK3_50,
+    ///////// CLOCK4 /////////
+    input              CLOCK4_50,
+    ///////// CLOCK /////////
+    input              CLOCK_50,
 
     ///////// GPIO /////////
     inout [35:0] GPIO_0,
     inout [35:0] GPIO_1,
-
-    ///////// HDMI /////////
-    inout         HDMI_I2C_SCL,
-    inout         HDMI_I2C_SDA,
-    inout         HDMI_I2S,
-    inout         HDMI_LRCLK,
-    inout         HDMI_MCLK,
-    inout         HDMI_SCLK,
-    output        HDMI_TX_CLK,
-    output [23:0] HDMI_TX_D,
-    output        HDMI_TX_DE,
-    output        HDMI_TX_HS,
-    input         HDMI_TX_INT,
-    output        HDMI_TX_VS,
-
-`ifdef ENABLE_HPS
-    ///////// HPS /////////
-    inout         HPS_CONV_USB_N,
-    output [14:0] HPS_DDR3_ADDR,
-    output [ 2:0] HPS_DDR3_BA,
-    output        HPS_DDR3_CAS_N,
-    output        HPS_DDR3_CKE,
-    output        HPS_DDR3_CK_N,
-    output        HPS_DDR3_CK_P,
-    output        HPS_DDR3_CS_N,
-    output [ 3:0] HPS_DDR3_DM,
-    inout  [31:0] HPS_DDR3_DQ,
-    inout  [ 3:0] HPS_DDR3_DQS_N,
-    inout  [ 3:0] HPS_DDR3_DQS_P,
-    output        HPS_DDR3_ODT,
-    output        HPS_DDR3_RAS_N,
-    output        HPS_DDR3_RESET_N,
-    input         HPS_DDR3_RZQ,
-    output        HPS_DDR3_WE_N,
-    output        HPS_ENET_GTX_CLK,
-    inout         HPS_ENET_INT_N,
-    output        HPS_ENET_MDC,
-    inout         HPS_ENET_MDIO,
-    input         HPS_ENET_RX_CLK,
-    input  [ 3:0] HPS_ENET_RX_DATA,
-    input         HPS_ENET_RX_DV,
-    output [ 3:0] HPS_ENET_TX_DATA,
-    output        HPS_ENET_TX_EN,
-    inout         HPS_GSENSOR_INT,
-    inout         HPS_I2C0_SCLK,
-    inout         HPS_I2C0_SDAT,
-    inout         HPS_I2C1_SCLK,
-    inout         HPS_I2C1_SDAT,
-    inout         HPS_KEY,
-    inout         HPS_LED,
-    inout         HPS_LTC_GPIO,
-    output        HPS_SD_CLK,
-    inout         HPS_SD_CMD,
-    inout  [ 3:0] HPS_SD_DATA,
-    output        HPS_SPIM_CLK,
-    input         HPS_SPIM_MISO,
-    output        HPS_SPIM_MOSI,
-    inout         HPS_SPIM_SS,
-    input         HPS_UART_RX,
-    output        HPS_UART_TX,
-    input         HPS_USB_CLKOUT,
-    inout  [ 7:0] HPS_USB_DATA,
-    input         HPS_USB_DIR,
-    input         HPS_USB_NXT,
-    output        HPS_USB_STP,
-`endif  /*ENABLE_HPS*/
-
+    ///////// HEX0 /////////
+    output      [6:0]  HEX0,
+    ///////// HEX1 /////////
+    output      [6:0]  HEX1,
+    ///////// HEX2 /////////
+    output      [6:0]  HEX2,
+    ///////// HEX3 /////////
+    output      [6:0]  HEX3,
+    ///////// HEX4 /////////
+    output      [6:0]  HEX4,
+    ///////// HEX5 /////////
+    output      [6:0]  HEX5,
     ///////// KEY /////////
-    input [1:0] KEY,
+    input       [3:0]  KEY,
 
-    ///////// LED /////////
-    output [7:0] LED,
+    ///////// LEDR /////////
+    output [7:0] LEDR,
 
     ///////// SW /////////
-    input [3:0] SW
+    input [9:0] SW
 );
 
+
+	wire [31:0] addr;
+
+	assign LEDR[0] = addr[0];
+
   wire clk;
-  assign clk = FPGA_CLK1_50;
+  assign clk = CLOCK_50;
+
   wire reset;
   assign reset = SW[0];
-  logic [31:0] instr_memory_data;
-  logic [31:0] data_memory_data;
-  logic [31:0] instr_memory_addr;
-  logic [31:0] data_memory_addr;
-  logic [31:0] data_memory_wd;
-  logic instr_memory_enable;
-  logic data_memory_we;
+  
+	assign LEDR[1] = clk;
+	assign LEDR[4] = reset;
 
-  core_top dut (
-      .clk(clk),
-      .reset(reset),
-      .instr_memory_data(instr_memory_data),
-      .data_memory_data(data_memory_data),
-      .instr_memory_addr(instr_memory_addr),
-      .data_memory_addr(data_memory_addr),
-      .data_memory_wd(data_memory_wd),
-      .data_memory_we(data_memory_we),
-      .instr_memory_enable(instr_memory_enable)
-  );
+  seven_segment_driver seg0(.data_in(addr[3:0]),   .data_out(HEX0));
+  seven_segment_driver seg1(.data_in(addr[7:4]),   .data_out(HEX1));
+  seven_segment_driver seg2(.data_in(addr[11:8]),  .data_out(HEX2));
+  seven_segment_driver seg3(.data_in(addr[15:12]), .data_out(HEX3));
+  seven_segment_driver seg4(.data_in(addr[19:16]), .data_out(HEX4));
+  seven_segment_driver seg5(.data_in(addr[23:20]), .data_out(HEX5));
+  
+  sisa_final dut(
+		.clk_clk(clk),                //          clk.clk
+		.instr_export_instr_if(addr),  // instr_export.instr_if
+		//.instr_export_instr_de,  //             .instr_de
+		//.instr_export_instr_ex,  //             .instr_ex
+		//.instr_export_instr_mem, //             .instr_mem
+		//.instr_export_instr_wb,  //             .instr_wb
+		.reset_reset_n(reset),          //        reset.reset_n
+		.control_reset_vector_addr(0),
+		.uart_RXD               (GPIO_0[0]),               //         uart.RXD
+		.uart_TXD               (GPIO_0[1])
+	);
 
-  logic rom0_we;  // dummy
-  logic [31:0] rom0_addr;
-  logic [31:0] rom0_wd;  // dummy
-  logic [31:0] rom0_rd;
-
-  logic rom1_we;  // dummy
-  logic [31:0] rom1_addr;
-  logic [31:0] rom1_wd;  // dummy
-  logic [31:0] rom1_rd;
-  assign rom1_rd[31:16] = 16'b0;
-
-  logic ram0_we;
-  logic [31:0] ram0_addr;
-  logic [31:0] ram0_wd;
-  logic [31:0] ram0_rd;
-
-  logic pio0_we;
-  logic [31:0] pio0_addr;
-  logic [31:0] pio0_wd;
-  logic [31:0] pio0_rd;
-
-  rom_2port #(
-      .INIT_FILE("../../software/reference_asm/output_files/reverb.txt")
-  ) rom0 (
-      .clk_a (clk),
-      .clk_b (clk),
-      .en_a  (instr_memory_enable),
-      .en_b  (1'b1),
-      .addr_a(instr_memory_addr),
-      .addr_b(rom0_addr),
-      .rd_a  (instr_memory_data),
-      .rd_b  (rom0_rd)
-  );
-
-  // para audio sin reverb
-  rom_1port #(
-      .INIT_FILE("/tmp/vitas.txt")
-  ) rom1 (
-      .clk (clk),
-      //.en  (1'b1),
-      .addr(rom1_addr),
-      .rd  (rom1_rd[15:0])
-  );
-
-  // para buffer circular
-  ram_1port ram (
-      .clk (clk),
-      .we  (ram0_we),
-      .addr(ram0_addr),
-      .wd  (ram0_wd),
-      .rd  (ram0_rd)
-  );
-
-  de10nano_pio pio (
-      .LED(LED),
-      .SW(SW),
-      .KEY(KEY),
-      .GPIO0(GPIO_0[31:0]),
-      .GPIO1(GPIO_1[31:0]),
-      .clk(clk),
-      .we(pio0_we),
-      .wd(pio0_wd),
-      .addr(pio0_addr),
-      .rd(pio0_rd)
-  );
-
-  simple_interconnect #(
-      .REGIONS(4)
-  ) bus (
-      .clk(clk),
-      .we_m(data_memory_we),
-      .addr_m(data_memory_addr),
-      .wd_m(data_memory_wd),
-      .rd_s({ rom1_rd, pio0_rd, ram0_rd, rom0_rd}),
-      .region_base({32'h1000_0000, 32'h0000_2000, 32'h0000_1000, 32'h0000_0000}),
-      .region_end({32'h2000_0000, 32'h0000_3000, 32'h0000_2000, 32'h0000_1000}),
-      .we_s({rom1_we, pio0_we, ram0_we, rom0_we}),
-      .addr_s({rom1_addr, pio0_addr, ram0_addr, rom0_addr}),
-      .wd_s({rom1_wd, pio0_wd, ram0_wd, rom0_wd}),
-      .rd_m(data_memory_data)
-  );
 
 endmodule

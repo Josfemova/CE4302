@@ -31,7 +31,12 @@ module control_unit_tb;
     .imm_src(imm_src),
     .result_src(result_src)
   );
-
+  
+    initial begin
+    $monitor("Time: %0t | op: %b | func3: %b | func11: %b | reg_write: %b | mem_write: %b | jump: %b | jump_cond: %b | jump_cond_type: %b | alu_control: %b | alu_src_op1: %b | alu_src_op2: %b | pc_target_src: %b | imm_src: %b | result_src: %b",
+              $time, op, func3, func11, reg_write, mem_write, jump, jump_cond, jump_cond_type, alu_control, alu_src_op1, alu_src_op2, pc_target_src, imm_src, result_src);
+  end
+  
   
   initial begin
     //OP_A type instruction (op = 3'b000)

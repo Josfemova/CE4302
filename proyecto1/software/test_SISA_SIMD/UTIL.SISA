@@ -1,0 +1,27 @@
+#ifndef UTIL_INCLUDE
+#define UTIL_INCLUDE
+
+#define ROM_BASE 0x0000
+#define RAM_BASE 0x20000
+#define STACK_START 0x3fffc
+#define STACK_END   0x3f800
+
+/* Funciones de utilidad */
+#define NOP SUM,zero,zero,zero
+#define END_SIMUL SUMI,zero,zero,0
+#define JBA JLRL,zero,lr,0
+#define MOV(rd, rs) SUM,rd,rs,zero
+#define NOT(rd, rs) XORI,rd,rs,-1
+#define NEG(rd, rs) DIF,rd,zero,rs
+#define CALL JLL,lr
+#define JMP JLL,zero
+#define PUSH(rs) SUMI, sp, sp, -4; \
+                 STM, rs, sp, 0; 
+#define POP(rs)  LDM, rs, sp, 0; \
+                 SUMI, sp, sp, 4; 
+
+#define TRUE 1
+#define FALSE 0
+#define NO_OFFSET 0
+
+#endif

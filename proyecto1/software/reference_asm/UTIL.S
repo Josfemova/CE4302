@@ -27,7 +27,7 @@
 #define NEG(rd, rs) DIF,rd,zero,rs
 #define CALL JLL,lr
 #define JMP JLL,zero
-#define PUSH(rs) SUMI sp, sp, -4; \
+#define PUSH(rs) SUMI, sp, sp, -4; \
                  STM, rs, sp, 0; 
 #define POP(rs)  LDM, rs, sp, 0; \
                  SUMI, sp, sp, 4; 

@@ -12,6 +12,11 @@ module jump_cond_ctrl_tb;
     .jump_cond_true(jump_cond_true)
   );
 
+  initial begin
+  $monitor("Time: %0t | jump_cond: %b | jump_cond_type: %b | alu_flags: %b | jump_cond_true: %b", 
+            $time, jump_cond, jump_cond_type, alu_flags, jump_cond_true);
+  end
+
   
   initial begin
     // no jump

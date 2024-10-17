@@ -1,21 +1,25 @@
 module hazard_unit (
-    input reset,
-    input [4:0] de_rs1,
-    input [4:0] de_rs2,
-    input [4:0] ex_rs1,
-    input [4:0] ex_rs2,
-    input [4:0] ex_rd,
-    input ex_pc_src,
-    input [1:0] ex_result_src,
-    input [4:0] mem_rd,
-    input mem_reg_write,
-    input [4:0] wb_rd,
-    input wb_reg_write,
+    input wire reset,
+    input wire [4:0] de_rs1,
+    input wire [4:0] de_rs2,
+    input wire [4:0] ex_rs1,
+    input wire [4:0] ex_rs2,
+    input wire [4:0] ex_rd,
+    input wire ex_pc_src,
+    input wire [1:0] ex_result_src,
+    input wire [4:0] mem_rd,
+    input wire mem_reg_write,
+    input wire [4:0] wb_rd,
+    input wire wb_reg_write,
+    input wire stall_all,
 
-    output if_stall,
-    output de_stall,
-    output de_flush,
-    output ex_flush,
+    output wire if_stall,
+    output wire de_stall,
+    output wire ex_stall,
+    output wire mem_stall,
+    output wire wb_stall,
+    output wire de_flush,
+    output wire ex_flush,
     output logic [1:0] ex_op1_forward,
     output logic [1:0] ex_op2_forward
 );
@@ -23,8 +27,11 @@ module hazard_unit (
   // a diferencia del RV del libro, 2b11 corresponde al valor del imm, entonces si se chequea 
   // igualdad a 2'b01 que selecciona la salida del dato leído de memoria. 
   wire ldm_hazard_stall = (ex_result_src == 2'b01) & ((de_rs1 == ex_rd) | (de_rs2 == ex_rd));
-  assign if_stall = ldm_hazard_stall | reset;
-  assign de_stall = ldm_hazard_stall | reset;
+  assign if_stall = stall_all | ldm_hazard_stall | reset;
+  assign de_stall = stall_all | ldm_hazard_stall | reset;
+  assign ex_stall =  stall_all | reset;
+  assign mem_stall = ex_stall;
+  assign wb_stall = ex_stall;
   assign de_flush = ex_pc_src | reset;
   assign ex_flush = ldm_hazard_stall | ex_pc_src | reset;
 

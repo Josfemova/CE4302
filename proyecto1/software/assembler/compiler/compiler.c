@@ -50,6 +50,17 @@ const instructions inst[] = {
     {.func_name = "JILT", .func3 = 0b011, .op = 0b110, .func11 = 0b00000000000},
     {.func_name = "JIGE", .func3 = 0b100, .op = 0b110, .func11 = 0b00000000000},
     {.func_name = "JILE", .func3 = 0b101, .op = 0b110, .func11 = 0b00000000000},
+    // vectoriales
+    {.func_name = "LDV", .func3 = 0b100, .op = 0b101, .func11 = 0b00000000000},
+    {.func_name = "STV", .func3 = 0b100, .op = 0b010, .func11 = 0b00000000000},
+    // tipo E
+    {.func_name = "VXOR",       .func3 = 0b000, .op = 0b100, .func11 = 0b00000000000},
+    {.func_name = "VROT32",     .func3 = 0b001, .op = 0b100, .func11 = 0b00000000000},
+    {.func_name = "VAES_SUB",   .func3 = 0b000, .op = 0b100, .func11 = 0b00000000001},
+    {.func_name = "VAES_ISUB",  .func3 = 0b001, .op = 0b100, .func11 = 0b00000000001},
+    {.func_name = "VAES_SHIFT", .func3 = 0b010, .op = 0b100, .func11 = 0b00000000001},
+    {.func_name = "VAES_MIX",   .func3 = 0b011, .op = 0b100, .func11 = 0b00000000001},
+    {.func_name = "VAES_WXOR",  .func3 = 0b100, .op = 0b100, .func11 = 0b00000000001},
 };
 typedef struct {
   char* name;
@@ -105,21 +116,21 @@ const reg_spec regs[] = {{.name = "x0", .val = 0},
                          {.name = "t3", .val = 14},
                          {.name = "t4", .val = 15},
                          {.name = "t5", .val = 16},
-                         {.name = "t7", .val = 17},
-                         {.name = "t8", .val = 18},
-                         {.name = "t9", .val = 19},
-                         {.name = "t0", .val = 20},
-                         {.name = "t10", .val = 21},
-                         {.name = "t11", .val = 22},
-                         {.name = "t12", .val = 23},
-                         {.name = "arg0", .val = 24},
-                         {.name = "arg1", .val = 25},
-                         {.name = "arg2", .val = 26},
-                         {.name = "arg3", .val = 27},
-                         {.name = "arg4", .val = 28},
-                         {.name = "arg5", .val = 29},
-                         {.name = "arg6", .val = 30},
-                         {.name = "arg7", .val = 31}};
+                         {.name = "t6", .val = 17},
+                         {.name = "t7", .val = 18},
+                         {.name = "arg0", .val = 19},
+                         {.name = "arg1", .val = 20},
+                         {.name = "arg2", .val = 21},
+                         {.name = "arg3", .val = 22},
+                         {.name = "arg4", .val = 23},
+                         {.name = "v0", .val = 24},
+                         {.name = "v1", .val = 25},
+                         {.name = "v2", .val = 26},
+                         {.name = "v3", .val = 27},
+                         {.name = "v4", .val = 28},
+                         {.name = "v5", .val = 29},
+                         {.name = "v6", .val = 30},
+                         {.name = "v7", .val = 31}};
 
 // funciones
 
@@ -237,6 +248,9 @@ char* handle_instruction(char* parts[], int token_counter) {
   } else if (operation == 0b011) {
     binaryString = typeD_assembly2bin(parts[0], parts[1], parts[2]);
     // printf("Type D \n");
+  } else if (operation == 0b100) {
+    binaryString = typeE_assembly2bin(parts[0], parts[1], parts[2], parts[3]);
+    // printf("Type E \n");
   } else if (operation == 0b101) {
     binaryString = typeF_assembly2bin(parts[0], parts[1], parts[2], parts[3]);
     // printf("Type F \n");
@@ -397,6 +411,39 @@ char* typeD_assembly2bin(char* assembly_instruction, char* rd, char* inmm) {
   result[0] = '\0';
 
   strcat(result, inmm_str);
+  strcat(result, reg_str);
+  strcat(result, func3_str);
+  strcat(result, opcode_str);
+
+  return result;
+}
+
+// vectorial
+char* typeE_assembly2bin(char* assembly_instruction, char* rd, char* reg1,
+                         char* reg2) {
+  // Para SUM, DIF, AND, OR, XOR, SLL, SLR, SAR, MUL, DIV
+  const char* opcode_str = "100";
+  const char* func3_str = int2bin(string2funct3(assembly_instruction), 3);
+  const char* reg_str = int2bin(string2reg(rd), 5);
+  const char* reg1_str = int2bin(string2reg(reg1), 5);
+  const char* reg2_str = int2bin(string2reg(reg2), 5);
+  const char* func11_str = int2bin(string2funct11(assembly_instruction), 11);
+
+  size_t totalLength = strlen(opcode_str) + strlen(func3_str) +
+                       strlen(reg_str) + strlen(reg2_str) + strlen(reg1_str) +
+                       strlen(func11_str) + 1;  // para terminar en null
+
+  char* result = (char*)malloc(totalLength);
+  if (result == NULL) {
+    fprintf(stderr, "Memory allocation failed.\n");
+    return NULL;
+  }
+
+  result[0] = '\0';
+
+  strcat(result, func11_str);
+  strcat(result, reg2_str);
+  strcat(result, reg1_str);
   strcat(result, reg_str);
   strcat(result, func3_str);
   strcat(result, opcode_str);

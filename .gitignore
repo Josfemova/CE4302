@@ -239,6 +239,7 @@ nios_system_log.txt
 *.objdump
 *.swp
 *.a
+*.*~
 nios_workspace
 platform
 .qsys_edit
@@ -255,3 +256,4 @@ obj
 compile_commands.json
 .cache
 .vscode
+*.DS_Store
