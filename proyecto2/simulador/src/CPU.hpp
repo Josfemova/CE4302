@@ -85,16 +85,6 @@ public:
      *
      * @param instructions A vector of strings representing instructions.
      */
-    void loadInstructions(const vector<string> &instructions);
-
-    /**
-     * @brief Loads instructions from a file.
-     *
-     * This function reads instructions from a file, where each line represents a single
-     * instruction. The existing instructions are cleared before loading new ones.
-     *
-     * @param filename The path to the file containing the instructions.
-     */
 
     void showState() const;
 
