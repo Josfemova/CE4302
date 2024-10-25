@@ -8,7 +8,7 @@ class MemoryMaster;
 class MemorySlave{
 public: 
     virtual std::vector<word> read_request(word addr, int burst_size, int from_ID)=0; 
-    virtual void write_request(word addr, word value, int from_ID)=0; 
+    virtual void write_request(word addr, std::vector<word> values, int from_ID)=0; 
 };
 
 typedef struct {
