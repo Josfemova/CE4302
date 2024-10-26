@@ -35,7 +35,7 @@ void *parallel_sum_fs(void *arg) {
     int end = start + (SIZE / NUM_THREADS);
 
     for (int i = start; i < end; i++) {
-        partial_sum_fs[id] += array[i];  // Acumulamos en variables contiguas
+        partial_sum_fs[id] += array[i];  // Acumular en variables contiguas
     }
     return NULL;
 }
@@ -65,7 +65,7 @@ void case2() {
 }
 
 // +-------------------------------------------------------+
-// | Caso 3: Producto escalar con MP sin false sharing     |
+// | Caso 3: Suma paralela con MP sin false sharing        |
 // +-------------------------------------------------------+
 
 #define CACHE_LINE_SIZE 64 // Separa cada cada suma parcial por al menos 64 bytes (padding)
@@ -103,7 +103,7 @@ int case3() {
         total += partial_sum[i][0];  // No hay false sharing
     }
 
-    printf("Suma total (Sin false sharing): %d\n", total);  // Debería ser 1000
+    printf("Suma total (Sin false sharing): %d\n", total);  
     return 0;
 }
 
@@ -112,7 +112,7 @@ int main() {
 
     // Inicializar el array con valores
     for (int i = 0; i < SIZE; i++) {
-        array[i] = 1;  // Ejemplo: inicializamos el array con 1s
+        array[i] = 1; 
     }
 
     // Medición del tiempo de ejecución
