@@ -67,7 +67,9 @@ void case2() {
 // +-------------------------------------------------------+
 
 // Padding para evitar false sharing
-int global_result[NUM_THREADS] = {0}; 
+#define CACHE_LINE_SIZE 64
+int global_result[NUM_THREADS][CACHE_LINE_SIZE / sizeof(int)] = {0}; 
+ 
 
 void* dot_product(void* arg) {
     int thread_id = *((int*)arg);
@@ -76,7 +78,7 @@ void* dot_product(void* arg) {
     int end = start + segment_size;
 
     for (int i = start; i < end; i++) {
-        global_result[thread_id] += a[i] * b[i]; // Resultados por hilo
+        global_result[thread_id][0] += a[i] * b[i]; // Acceder a la posición 0 para evitar false sharing
     }
 
     return NULL;
@@ -86,22 +88,26 @@ void case3() {
     pthread_t threads[NUM_THREADS];
     int thread_ids[NUM_THREADS];
 
+    // Crear hilos
     for (int i = 0; i < NUM_THREADS; i++) {
         thread_ids[i] = i; 
         pthread_create(&threads[i], NULL, dot_product, (void*)&thread_ids[i]);
     }
 
+    // Esperar a que los hilos terminen
     for (int i = 0; i < NUM_THREADS; i++) {
         pthread_join(threads[i], NULL);
     }
 
+    // Sumar los resultados parciales de cada hilo
     int total_result = 0;
     for (int i = 0; i < NUM_THREADS; i++) {
-        total_result += global_result[i]; // Sumar resultados de cada hilo
+        total_result += global_result[i][0]; // Acceso correcto con padding
     }
 
     printf("Producto escalar (sin false sharing): %d\n", total_result);
 }
+
 
 // +-----------------------------------------------------------+
 // | Inicialización y print para arrays (de 0 a n, n = SIZE-1) |
