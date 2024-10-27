@@ -12,11 +12,11 @@ enum class ArbitrationPolicy{
     RoundRobin
 };
 
-class BusInterconnect: public MemoryMaster, public MemorySlave
+class BusInterconnect: public Bus
 {
 private:
     std::vector<MemorySlaveCard> mem_slaves;
-    std::vector<MemoryMasterCard> mem_masters;
+    std::vector<BusMasterCard> bus_masters;
 
 
     ArbitrationPolicy arb_policy;
@@ -27,27 +27,23 @@ private:
     std::list<int> request_queue;
 
 
-
     // contadores
     int invalidations;
     Clock* clock;
 
 
     // funciones privadas
-    std::vector<word> service_read_request(word addr, int burst_size); 
-    void service_write_request(word addr, std::vector<word> values);
+    MemorySlaveCard* resolve_addr(int64_t addr);
+    int64_t read_main_memory(int64_t addr); 
+    void write_main_memory(int64_t addr, int64_t value);
 
 public:
-    BusInterconnect(Clock* clock);
-    void register_mem_slave(MemorySlave* mem_slave, word start_addr, word end_addr) override;
-    void register_mem_master(MemoryMaster* mem_master); 
-    /**
-     * @brief Corre el algoritmo de arbitraje de bus
-     * 
-     */
+    explicit BusInterconnect(Clock* clock);
+    void register_mem_slave(MemorySlave* mem_slave, int64_t start_addr, int64_t end_addr);
+    void register_bus_master(BusMaster* mem_master); 
+    /// @brief Corre el algoritmo de arbitraje de bus
     void Update();
-    std::vector<word> read_request(word addr, int burst_size, int from_ID) override; 
-    void write_request(word addr, std::vector<word> values, int from_ID) override; 
+    void bus_request(BusMessage_t& request) override; 
 };
 
 

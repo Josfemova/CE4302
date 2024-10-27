@@ -3,16 +3,16 @@
 #include <algorithm>
 
 void BusInterconnect::register_mem_slave(MemorySlave* mem_slave,
-                                         word start_addr, word end_addr) {
+                                         int64_t start_addr, int64_t end_addr) {
   MemorySlaveCard card = {
       .ptr = mem_slave, .start_addr = start_addr, .end_addr = end_addr};
   this->mem_slaves.push_back(card);
 }
 
-void BusInterconnect::register_mem_master(MemoryMaster* mem_master) {
-  MemoryMasterCard card = {
+void BusInterconnect::register_bus_master(BusMaster* mem_master) {
+  BusMasterCard card = {
       .ptr = mem_master, .read_requests = 0, .write_requests = 0};
-  this->mem_masters.push_back(card);
+  this->bus_masters.push_back(card);
 }
 
 void BusInterconnect::Update() {
@@ -20,16 +20,14 @@ void BusInterconnect::Update() {
   if (!this->bus_active) {
     // si el bus no está activo, se puede cambiar el master
     switch (this->arb_policy) {
-      case ArbitrationPolicy::RoundRobin:
-
-        if (this->current_master_index != (this->mem_masters.size() - 1)) {
+      case ArbitrationPolicy::RoundRobin: {
+        if (this->current_master_index != (this->bus_masters.size() - 1)) {
           this->current_master_index += 1;
         } else {
           this->current_master_index = 0;
         }
 
-        MemoryMaster* current_master =
-            mem_masters[this->current_master_index].ptr;
+        BusMaster* current_master = bus_masters[this->current_master_index].ptr;
         // buscar si el master actual está asociado a un request
         auto master_id_it =
             std::find(this->request_queue.begin(), this->request_queue.end(),
@@ -43,6 +41,7 @@ void BusInterconnect::Update() {
         }
 
         break;
+      }
       case ArbitrationPolicy::FIFO:
       default:
         if (!this->request_queue.empty()) {
@@ -56,49 +55,76 @@ void BusInterconnect::Update() {
   bus_mutex.unlock();
 }
 
-std::vector<word> BusInterconnect::service_read_request(word addr,
-                                                        int burst_size) {
-  // enviar mensaje de que se solicita un valor.
-
-  // Log de que se puso el mensaje de read en el bus
+int64_t BusInterconnect::read_main_memory(int64_t addr) {
+  auto selected_slave_it = find_if(
+      this->mem_slaves.begin(), this->mem_slaves.end(), [=](auto msc) -> bool {
+        return (addr >= msc.start_addr) && (addr <= msc.end_addr);
+      });
+  if (selected_slave_it == this->mem_slaves.end()){
+    throw 30;  // si llega acá es que la dirección ta fuera de memoria
+  }else{
+      int local_addr = addr - (*selected_slave_it).start_addr;
+      return (*selected_slave_it).ptr->read_request(local_addr);
+  }
 }
 
-void BusInterconnect::service_write_request(word addr,
-                                            std::vector<word> values) {
-  // enviar mensaje de invalidación a todos los masters registrados
-  clock->step();
-  //
+void BusInterconnect::write_main_memory(int64_t addr, int64_t value) {
+  auto selected_slave_it = find_if(
+      this->mem_slaves.begin(), this->mem_slaves.end(), [=](auto msc) -> bool {
+        return (addr >= msc.start_addr) && (addr <= msc.end_addr);
+      });
+  if (selected_slave_it == this->mem_slaves.end()){
+    throw 30;  // si llega acá es que la dirección ta fuera de memoria
+  }else{
+      int local_addr = addr - (*selected_slave_it).start_addr;
+      (*selected_slave_it).ptr->write_request(local_addr, value);
+  }
 }
 
-std::vector<word> BusInterconnect::read_request(word addr, int burst_size,
-                                                int from_ID) {
+void BusInterconnect::bus_request(BusMessage_t& request) {
   bus_mutex.lock();
-  this->request_queue.push_back(from_ID);
+  this->request_queue.push_back(request.master_id);
   bus_mutex.unlock();
 
   // esperar al turno del cliente
-  while (this->current_master_id != from_ID);
+  while (this->current_master_id != request.master_id);
 
-  auto ret = service_read_request(addr, burst_size);
+  // aumentar contadores
+  if (request.type == BusMessageType::BusRdX) {
+    this->invalidations++;
+  }
 
+  //======================
+  // TODO Service request
+  //======================
+
+  // TODO Notify each bus master of the request
+  for (auto bmc : this->bus_masters) {
+    bmc.ptr->handle_bus_message(request);
+  }
+
+  if (request.completed == false) {
+    switch (request.type) {
+      case BusMessageType::BusRd:
+      case BusMessageType::BusRdX:
+        for (int i = 0; i < 4; i++) {
+          request.data[i] = this->read_main_memory(request.address + i * 8);
+        }
+        break;
+      case BusMessageType::Flush:
+        for (int i = 0; i < 4; i++) {
+          this->write_main_memory(request.address + i * 8, request.data[i]);
+        }
+        break;
+    }
+  }
   // no necesita hacer lock del mutex porque no hay condicion de carrera posible
   this->bus_active = false;
-  return ret;
 }
 
-void BusInterconnect::write_request(word addr, std::vector<word> values,
-                                    int from_ID) {
-  bus_mutex.lock();
-  this->request_queue.push_back(from_ID);
-  bus_mutex.unlock();
-
-  // esperar al turno del cliente
-  while (this->current_master_id != from_ID);
-
-  service_write_request(addr, values);
-
-  // no necesita hacer lock del mutex porque no hay condicion de carrera posible
-  this->bus_active = false;
-}
-
-BusInterconnect::BusInterconnect(Clock* clock) : clock{clock} {}
+BusInterconnect::BusInterconnect(Clock* clock)
+    : clock{clock},
+      arb_policy{ArbitrationPolicy::FIFO},
+      bus_active{false},
+      current_master_id{0},
+      current_master_index{0} {}

@@ -6,8 +6,5 @@
 #include <memory>
 #include <vector>
 
-typedef std::size_t word;
-
-
 
 #endif
