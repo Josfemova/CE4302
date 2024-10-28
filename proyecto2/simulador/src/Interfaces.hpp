@@ -2,6 +2,7 @@
 #define CE4302_INTERFACES_H
 
 #include "types.hpp"
+#include "Clocked.hpp"
 
 
 class BusMaster;
@@ -33,6 +34,9 @@ typedef struct{
     //! Deprecado!, es más fácil simplemente no completar el request y cambiar 
     //! y que el caché solo cambie el tipo de mensaje a "flush" 
     // bool must_flush_to_main_memory;
+    
+    /// @brief indica si un bloque es exclusivo al terminar una operación
+    bool exclusive;
     bool completed;
 } BusMessage_t;
 

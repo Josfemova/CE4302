@@ -21,7 +21,7 @@ void BusInterconnect::Update() {
     // si el bus no está activo, se puede cambiar el master
     switch (this->arb_policy) {
       case ArbitrationPolicy::RoundRobin: {
-        if (this->current_master_index != (this->bus_masters.size() - 1)) {
+        if (this->current_master_index != ((int)this->bus_masters.size() - 1)) {
           this->current_master_index += 1;
         } else {
           this->current_master_index = 0;
@@ -60,11 +60,11 @@ int64_t BusInterconnect::read_main_memory(int64_t addr) {
       this->mem_slaves.begin(), this->mem_slaves.end(), [=](auto msc) -> bool {
         return (addr >= msc.start_addr) && (addr <= msc.end_addr);
       });
-  if (selected_slave_it == this->mem_slaves.end()){
+  if (selected_slave_it == this->mem_slaves.end()) {
     throw 30;  // si llega acá es que la dirección ta fuera de memoria
-  }else{
-      int local_addr = addr - (*selected_slave_it).start_addr;
-      return (*selected_slave_it).ptr->read_request(local_addr);
+  } else {
+    int local_addr = addr - (*selected_slave_it).start_addr;
+    return (*selected_slave_it).ptr->read_request(local_addr);
   }
 }
 
@@ -73,11 +73,11 @@ void BusInterconnect::write_main_memory(int64_t addr, int64_t value) {
       this->mem_slaves.begin(), this->mem_slaves.end(), [=](auto msc) -> bool {
         return (addr >= msc.start_addr) && (addr <= msc.end_addr);
       });
-  if (selected_slave_it == this->mem_slaves.end()){
+  if (selected_slave_it == this->mem_slaves.end()) {
     throw 30;  // si llega acá es que la dirección ta fuera de memoria
-  }else{
-      int local_addr = addr - (*selected_slave_it).start_addr;
-      (*selected_slave_it).ptr->write_request(local_addr, value);
+  } else {
+    int local_addr = addr - (*selected_slave_it).start_addr;
+    (*selected_slave_it).ptr->write_request(local_addr, value);
   }
 }
 
@@ -95,10 +95,10 @@ void BusInterconnect::bus_request(BusMessage_t& request) {
   }
 
   //======================
-  // TODO Service request
+  // Service request
   //======================
 
-  // TODO Notify each bus master of the request
+  // Notify each bus master of the request
   for (auto bmc : this->bus_masters) {
     bmc.ptr->handle_bus_message(request);
   }
@@ -110,21 +110,27 @@ void BusInterconnect::bus_request(BusMessage_t& request) {
         for (int i = 0; i < 4; i++) {
           request.data[i] = this->read_main_memory(request.address + i * 8);
         }
+        request.exclusive = true;
         break;
       case BusMessageType::Flush:
         for (int i = 0; i < 4; i++) {
           this->write_main_memory(request.address + i * 8, request.data[i]);
         }
         break;
+      case BusMessageType::BusUpgr:
+      default:
+        break;
     }
+    request.completed = true;
   }
   // no necesita hacer lock del mutex porque no hay condicion de carrera posible
   this->bus_active = false;
 }
 
-BusInterconnect::BusInterconnect(Clock* clock)
-    : clock{clock},
-      arb_policy{ArbitrationPolicy::FIFO},
-      bus_active{false},
+BusInterconnect::BusInterconnect()
+    : arb_policy{ArbitrationPolicy::FIFO},
+      current_master_index{0},
       current_master_id{0},
-      current_master_index{0} {}
+      bus_active{false}
+      {
+      }
