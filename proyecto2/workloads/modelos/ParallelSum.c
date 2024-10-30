@@ -3,39 +3,38 @@
 #include <time.h>
 
 #define NUM_THREADS 4
-#define SIZE 1000000 // Size del array
-int array[SIZE];  // Array de entrada
+#define SIZE 1000000 // Número de elementos para contar
 
 // +-------------------------------------------------------+
-// | Caso 1: Suma de los elementos de un arrya sin         |
-// | multiprocessing (MP), se realiza de forma secuencial  |
+// | Caso 1: Contar 1s sin multiprocessing (MP)            |
+// | Se realiza de forma secuencial                         |
 // +-------------------------------------------------------+
-
-int sum_sequential() {
+int count_ones_sequential() {
     int total = 0;
     for (int i = 0; i < SIZE; i++) {
-        total += array[i];  
+        total++;  
     }
     return total;
 }
 
 void case1() {
-    printf("Suma total secuencial: %d\n", sum_sequential());
+    printf("[Sin MP] Total: %d\n", count_ones_sequential());
 }
 
 // +-------------------------------------------------------+
-// | Caso 2: Suma paralela con MP y false sharing          |
+// | Caso 2: Contar 1s en paralelo con MP y false sharing   | 
 // +-------------------------------------------------------+
 
-int partial_sum_fs[NUM_THREADS];  // Suma parcial para cada hilo (contiguo en memoria, suceptible a fs)
+// Variable compartida para contar unos, susceptible a false sharing
+int shared_count = 0;
 
-void *parallel_sum_fs(void *arg) {
+void *count_ones_fs(void *arg) {
     int id = *(int *)arg;
     int start = id * (SIZE / NUM_THREADS);
     int end = start + (SIZE / NUM_THREADS);
 
     for (int i = start; i < end; i++) {
-        partial_sum_fs[id] += array[i];  // Acumular en variables contiguas
+        shared_count++;  // Incrementar la variable compartida
     }
     return NULL;
 }
@@ -44,10 +43,13 @@ void case2() {
     pthread_t threads[NUM_THREADS];
     int threads_ids[NUM_THREADS];
 
+    // Inicializar la variable compartida
+    shared_count = 0; 
+
     // Crear hilos
     for (int i = 0; i < NUM_THREADS; i++) {
         threads_ids[i] = i;
-        pthread_create(&threads[i], NULL, parallel_sum_fs, &threads_ids[i]);
+        pthread_create(&threads[i], NULL, count_ones_fs, &threads_ids[i]);
     }
 
     // Esperar a que los hilos terminen
@@ -55,41 +57,39 @@ void case2() {
         pthread_join(threads[i], NULL);
     }
 
-    // Sumar los resultados parciales
-    int total = 0;
-    for (int i = 0; i < NUM_THREADS; i++) {
-        total += partial_sum_fs[i];  // False sharing puede ocurrir aquí
-    }
-
-    printf("Suma total (con false sharing): %d\n", total);
+    printf("[MP con false sharing] Total: %d\n", shared_count);
 }
 
 // +-------------------------------------------------------+
-// | Caso 3: Suma paralela con MP sin false sharing        |
+// | Caso 3: Contar 1s en paralelo con MP sin false sharing | 
 // +-------------------------------------------------------+
 
-#define CACHE_LINE_SIZE 64 // Separa cada cada suma parcial por al menos 64 bytes (padding)
-int partial_sum[NUM_THREADS][CACHE_LINE_SIZE / sizeof(int)]; 
+#define CACHE_LINE_SIZE 64 // Separa cada contador parcial por al menos 64 bytes (padding)
+int partial_count[NUM_THREADS][CACHE_LINE_SIZE / sizeof(int)]; 
 
-void *parallel_sum(void *arg) {
+void *count_ones(void *arg) {
     int id = *(int *)arg;
     int start = id * (SIZE / NUM_THREADS);
     int end = start + (SIZE / NUM_THREADS);
 
     for (int i = start; i < end; i++) {
-        partial_sum[id][0] += array[i];  // Alineado para evitar compartir caché
+        partial_count[id][0]++;  // Contar sin false sharing
     }
     return NULL;
 }
 
-int case3() {
+void case3() {
     pthread_t threads[NUM_THREADS];
     int threads_ids[NUM_THREADS];
+
+    for (int i = 0; i < NUM_THREADS; i++) {
+        partial_count[i][0] = 0; // Inicializar cada contador parcial
+    }
 
     // Crear hilos
     for (int i = 0; i < NUM_THREADS; i++) {
         threads_ids[i] = i;
-        pthread_create(&threads[i], NULL, parallel_sum, &threads_ids[i]);
+        pthread_create(&threads[i], NULL, count_ones, &threads_ids[i]);
     }
 
     // Esperar a que los hilos terminen
@@ -100,34 +100,26 @@ int case3() {
     // Sumar los resultados parciales
     int total = 0;
     for (int i = 0; i < NUM_THREADS; i++) {
-        total += partial_sum[i][0];  // No hay false sharing
+        total += partial_count[i][0]; 
     }
 
-    printf("Suma total (Sin false sharing): %d\n", total);  
-    return 0;
+    printf("[MP sin false sharing] Total: %d\n", total);
 }
 
-
 int main() {
-
-    // Inicializar el array con valores
-    for (int i = 0; i < SIZE; i++) {
-        array[i] = 1; 
-    }
-
     // Medición del tiempo de ejecución
     clock_t start, end;
     double cpu_time_used;
     start = clock();
 
     // Llamada a los casos de prueba
-    case3();
+    case3(); 
     
     end = clock();
 
     // Calcular el tiempo de ejecución
-    cpu_time_used = (((double)(end - start)) / CLOCKS_PER_SEC)*1000;
-    printf("Tiempo de ejecucion: %f ms\n", cpu_time_used);
+    cpu_time_used = (((double)(end - start)) / CLOCKS_PER_SEC) * 1000;
+    printf("Tiempo de ejecucion total: %f ms\n", cpu_time_used);
 
     return 0;
 }
