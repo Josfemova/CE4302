@@ -1,0 +1,3 @@
+[submodule "tallerMPI-jose/docker-mpi"]
+	path = tallerMPI-jose/docker-mpi
+	url = https://github.com/czerenkow/docker-mpi.git

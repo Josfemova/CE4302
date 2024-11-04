@@ -1,0 +1,4 @@
+#!/bin/sh
+docker exec -e TEST=${TEST} -it $(docker ps -q -f name=stackmpi_master) sh ./project/sobel/docker_script.sh
+
+
