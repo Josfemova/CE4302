@@ -1,0 +1,195 @@
+rm -rf build
+mkdir build 
+mpicc matrix_mul.c -o build/matrix 
+sh mpi_docker.sh
+#0 building with "default" instance using docker driver
+
+#1 [master internal] load build definition from Dockerfile
+#1 transferring dockerfile: 1.14kB done
+#1 DONE 0.0s
+
+#2 [master internal] load metadata for docker.io/library/ubuntu:20.04
+#2 DONE 1.2s
+
+#3 [master internal] load .dockerignore
+#3 transferring context: 2B done
+#3 DONE 0.0s
+
+#4 [master  1/17] FROM docker.io/library/ubuntu:20.04@sha256:8e5c4f0285ecbb4ead070431d29b576a530d3166df73ec44affc1cd27555141b
+#4 DONE 0.0s
+
+#5 [master internal] load build context
+#5 transferring context: 344B done
+#5 DONE 0.0s
+
+#6 [master 10/17] RUN tinysshd-makekey /etc/tinyssh/sshkeydir
+#6 CACHED
+
+#7 [master 14/17] RUN chmod 600 /root/.ssh/authorized_keys
+#7 CACHED
+
+#8 [master  3/17] RUN DEBIAN_FRONTEND=noninteractive apt-get update -y
+#8 CACHED
+
+#9 [master 12/17] COPY ssh/*  /root/.ssh/
+#9 CACHED
+
+#10 [master  9/17] RUN DEBIAN_FRONTEND=noninteractive apt-get install -y rsync
+#10 CACHED
+
+#11 [master 11/17] RUN mkdir /root/.ssh/
+#11 CACHED
+
+#12 [master  6/17] RUN DEBIAN_FRONTEND=noninteractive apt-get install -y tinysshd ucspi-tcp
+#12 CACHED
+
+#13 [master  4/17] RUN DEBIAN_FRONTEND=noninteractive apt-get install -y apt-utils vim bc build-essential pkgconf cmake m4 autoconf automake jq gdb python3 python3-dateutil apt-file curl less
+#13 CACHED
+
+#14 [master  2/17] RUN DEBIAN_FRONTEND=noninteractive apt-get clean
+#14 CACHED
+
+#15 [master  7/17] RUN DEBIAN_FRONTEND=noninteractive apt-get install -y openssh-client
+#15 CACHED
+
+#16 [master 13/17] RUN chmod 700 /root/.ssh/
+#16 CACHED
+
+#17 [master 15/17] RUN chmod 600 /root/.ssh/id_ecdsa
+#17 CACHED
+
+#18 [master  5/17] RUN DEBIAN_FRONTEND=noninteractive apt-get install -y libmpich-dev
+#18 CACHED
+
+#19 [master  8/17] RUN DEBIAN_FRONTEND=noninteractive apt-get install -y iputils-ping dnsutils
+#19 CACHED
+
+#20 [master 16/17] COPY bin-master/* /usr/local/bin/
+#20 CACHED
+
+#21 [master 17/17] WORKDIR /root
+#21 CACHED
+
+#22 [master] exporting to image
+#22 exporting layers done
+#22 writing image sha256:d19b7d442424cd696025ae44c9ae8029628d2a20892159c9f73597b64cce250f done
+#22 naming to 127.0.0.1:5000/mpi done
+#22 DONE 0.0s
+
+#23 [master] resolving provenance for metadata file
+#23 DONE 0.0s
+Creating network stackmpi_default
+Creating service stackmpi_master
+Creating service stackmpi_worker
+10.0.1.2
+10.0.1.7
+10.0.1.6
+10.0.1.5
+10.0.1.8
+/root/project/sobel
+Warning: Permanently added '10.0.1.6' (ED25519) to the list of known hosts.
+sending incremental file list
+project/
+project/makefile
+project/test-mpi.c
+project/sobel/
+project/sobel/Makefile
+project/sobel/a.out
+project/sobel/docker_script.sh
+project/sobel/matrix_mul.c
+project/sobel/mpi_docker.sh
+project/sobel/run_docker.log
+project/sobel/build/
+project/sobel/build/matrix
+project/sobel/build/mpi
+project/sobel/docker/
+project/sobel/docker/attach-stack
+project/sobel/docker/docker-compose.yml
+
+sent 56,145 bytes  received 272 bytes  112,834.00 bytes/sec
+total size is 55,117  speedup is 0.98
+Warning: Permanently added '10.0.1.8' (ED25519) to the list of known hosts.
+sending incremental file list
+project/
+project/makefile
+project/test-mpi.c
+project/sobel/
+project/sobel/Makefile
+project/sobel/a.out
+project/sobel/docker_script.sh
+project/sobel/matrix_mul.c
+project/sobel/mpi_docker.sh
+project/sobel/run_docker.log
+project/sobel/build/
+project/sobel/build/matrix
+project/sobel/build/mpi
+project/sobel/docker/
+project/sobel/docker/attach-stack
+project/sobel/docker/docker-compose.yml
+
+sent 56,145 bytes  received 272 bytes  112,834.00 bytes/sec
+total size is 55,117  speedup is 0.98
+Warning: Permanently added '10.0.1.7' (ED25519) to the list of known hosts.
+sending incremental file list
+project/
+project/makefile
+project/test-mpi.c
+project/sobel/
+project/sobel/Makefile
+project/sobel/a.out
+project/sobel/docker_script.sh
+project/sobel/matrix_mul.c
+project/sobel/mpi_docker.sh
+project/sobel/run_docker.log
+project/sobel/build/
+project/sobel/build/matrix
+project/sobel/build/mpi
+project/sobel/docker/
+project/sobel/docker/attach-stack
+project/sobel/docker/docker-compose.yml
+
+sent 56,145 bytes  received 272 bytes  112,834.00 bytes/sec
+total size is 55,117  speedup is 0.98
+Warning: Permanently added '10.0.1.5' (ED25519) to the list of known hosts.
+sending incremental file list
+project/
+project/makefile
+project/test-mpi.c
+project/sobel/
+project/sobel/Makefile
+project/sobel/a.out
+project/sobel/docker_script.sh
+project/sobel/matrix_mul.c
+project/sobel/mpi_docker.sh
+project/sobel/run_docker.log
+project/sobel/build/
+project/sobel/build/matrix
+project/sobel/build/mpi
+project/sobel/docker/
+project/sobel/docker/attach-stack
+project/sobel/docker/docker-compose.yml
+
+sent 56,145 bytes  received 272 bytes  37,611.33 bytes/sec
+total size is 55,117  speedup is 0.98
+Warning: Permanently added '10.0.1.2' (ED25519) to the list of known hosts.
+[    1     2     3     4 ]
+[    5     6     7     8 ]
+[    9    10    11    12 ]
+[   13    14    15    16 ]
+
+X
+
+[    5     6     7     8 ]
+[    9    10    11    12 ]
+[   13    14    15    16 ]
+[   17    18    19    20 ]
+
+=
+
+[  130   140   150   160 ]
+[  306   332   358   384 ]
+[  482   524   566   608 ]
+[  658   716   774   832 ]
+Removing service stackmpi_master
+Removing service stackmpi_worker
+Removing network stackmpi_default
