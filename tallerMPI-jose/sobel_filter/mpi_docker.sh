@@ -8,16 +8,16 @@ mkdir $OUTDIR
 cp . -r $OUTDIR/../sobel
 cp ./docker_script.sh $OUTDIR
 cd ../docker-mpi/
-cp project/sobel/docker-compose.yml . 
-cp attach-stack . 
+cp project/sobel/docker/docker-compose.yml . 
+cp project/sobel/docker/attach-stack . 
 docker-compose build
 docker-compose push 
-sh ./start-stack; 
+sh ./start-stack
 sleep 2;
-sh ./attach-stack;
+sh ./attach-stack
 sh ./stop-stack
 cd ../sobel_filter
 cp $OUTDIR/build/test${TEST}_mpidocker.txt ./build/test${TEST}_mpidocker.txt
 rm -rf $OUTDIR
-(cd ../docker_mpi; git restore .)
+(cd ../docker-mpi; git restore .)
 
