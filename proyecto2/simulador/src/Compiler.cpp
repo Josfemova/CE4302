@@ -6,6 +6,7 @@
 #include <iostream>
 
 // Constructor
+// Constructor
 Compiler::Compiler() : pc(0) {}
 
 // Cargar instrucciones desde un archivo
@@ -34,42 +35,67 @@ std::vector<std::string> Compiler::loadInstructionsFromFile(const std::string &f
 
     bool validInstructions = true;
 
+    // First pass: Load labels
+    while (std::getline(file, line))
+    {
+        if (!line.empty())
+        {
+            std::smatch match;
+            if (std::regex_match(line, match, label_regex))
+            {
+                std::string label = match[1].str();
+                labels[label] = pc;
+                continue;
+            }
+            pc++;
+        }
+    }
+
+    // Reopen the file to reset the file pointer for the second pass
+    file.clear();                 // Clears any error state
+    file.seekg(0, std::ios::beg); // Moves the file pointer to the beginning
+
+    pc = 0;
+
+    // Second pass: Load instructions
     while (std::getline(file, line))
     {
         if (!line.empty())
         {
             std::smatch match;
 
+            // Check for labels and skip them
+            if (std::regex_match(line, match, label_regex))
+            {
+                continue; // Skip the label, move to the next line
+            }
+
             if (std::regex_match(line, match, load_regex))
             {
-                // Format: LOAD REGX VALUE
                 int reg = std::stoi(match[1].str());
                 int value = std::stoi(match[2].str());
                 instructionMemory.push_back(std::format("LOAD {} {}", reg, value));
             }
             else if (std::regex_match(line, match, store_regex))
             {
-                // Format: STORE REGX VALUE
                 int reg = std::stoi(match[1].str());
                 int value = std::stoi(match[2].str());
                 instructionMemory.push_back(std::format("STORE {} {}", reg, value));
             }
             else if (std::regex_match(line, match, inc_regex))
             {
-                // Format: INC REGX
                 int reg = std::stoi(match[1].str());
                 instructionMemory.push_back(std::format("INC {}", reg));
             }
-            else if (std::regex_match(line, match, inc_regex))
+            else if (std::regex_match(line, match, dec_regex))
             {
-                // Format: DEC REGX
                 int reg = std::stoi(match[1].str());
                 instructionMemory.push_back(std::format("DEC {}", reg));
             }
             else if (std::regex_match(line, match, jnz_regex))
             {
-                // Format: JNZ [label]
                 std::string label = match[1].str();
+
                 if (labels.find(label) != labels.end())
                 {
                     int jumpAddress = labels[label];
@@ -81,12 +107,6 @@ std::vector<std::string> Compiler::loadInstructionsFromFile(const std::string &f
                     validInstructions = false;
                     break;
                 }
-            }
-            else if (std::regex_match(line, match, label_regex))
-            {
-                // Format: label:
-                std::string label = match[1].str();
-                labels[label] = pc;
             }
             else
             {
