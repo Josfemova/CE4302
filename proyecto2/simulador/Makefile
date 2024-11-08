@@ -1,9 +1,9 @@
 CC=gcc
 CXX=g++
 RM=rm -f
-CPPFLAGS=-g -std=c++20
-LDFLAGS=-g 
-LDLIBS=   
+CPPFLAGS=-g -std=c++20 -I/opt/homebrew/include  # Include path for libwebsockets
+LDFLAGS=-g -L/opt/homebrew/lib  # Library path for libwebsockets
+LDLIBS=-lwebsockets  # Link the websockets library
 
 IDIR=src
 SRCDIR=src
@@ -36,11 +36,11 @@ $(ODIR)/tests/%.o: $(SRCDIR)/tests/%.cpp $(DEPS)
 
 # Main application target
 simul: $(OBJ)
-	$(CXX) -o $(ODIR)/$@ $^ $(CPPFLAGS) $(LDLIBS)
+	$(CXX) -o $(ODIR)/$@ $^ $(CPPFLAGS) $(LDFLAGS) $(LDLIBS)
 
 # Test target
 tests: $(TEST_OBJ) $(CPU_OBJ_TESTS) ${COMPILER_OBJ_TESTS}  # Include CPU_OBJ_TESTS for linking
-	$(CXX) -o $(ODIR)/tests/tests $^ $(CPPFLAGS) $(LDLIBS)
+	$(CXX) -o $(ODIR)/tests/tests $^ $(CPPFLAGS) $(LDFLAGS) $(LDLIBS)
 
 # Phony targets
 .PHONY: clean install tests simul
