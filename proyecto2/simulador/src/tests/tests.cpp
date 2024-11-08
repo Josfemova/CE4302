@@ -44,74 +44,104 @@ void createMockInstructionsFile(const std::string &filename, int caseNumber)
 
         case 4: // Instructions including JNZ with a label (simple case)
 
-            // Setting REG0 to 10 by incrementing it 10 times
+            // Set REG0 to 10 by incrementing it 10 times
             for (int i = 0; i < 10; ++i)
             {
-                file << "INC REG0\n";
+                file << "INC REG0\n"; // Increment REG0 (REG0 will become 10)
             }
 
-            // Increment and Decrement loop as per the original example
-            file << "INC REG0\n";  // Increment REG0 -> 11
-            file << "JNZ [end]\n"; // Jump to 'end' if jump flag
-            file << "INC REG1\n";  // This will not be executed because of the jump
-            file << "end:\n";      // Label 'end'
-            file << "INC REG0\n";  // Increment REG0 (this will happen after jump, REG0 = 12)
+            // Increment REG0 once more, making it 11
+            file << "INC REG0\n"; // Increment REG0 -> REG0 = 11
+
+            // Check if REG0 is non-zero and jump to 'end' if true
+            file << "JNZ [end]\n"; // If REG0 != 0, jump to 'end'
+
+            // This line will be skipped because of the jump
+            file << "INC REG1\n"; // This will NOT execute due to jump
+
+            // Define the 'end' label where the code resumes after the jump
+            file << "end:\n"; // Label 'end'
+
+            // Increment REG0 after the jump, which will now make REG0 = 12
+            file << "INC REG0\n"; // Increment REG0 (REG0 = 12)
             break;
 
         case 5: // Extensive use of JNZ with two labels, keeping REG1 as 0 or 1
-            // Set REG0 to 10
+
+            // Set REG0 to 10 by incrementing it 10 times
             for (int i = 0; i < 10; ++i)
             {
-                file << "INC REG0\n";
+                file << "INC REG0\n"; // Increment REG0 (REG0 = 10 after 10 increments)
             }
 
             // Set REG1 to 1
-            file << "INC REG1\n";
+            file << "INC REG1\n"; // Increment REG1 (REG1 = 1)
 
-            // Set REG2 to 0 (already initialized to 0, so no INC needed)
+            // Set REG2 to 0 (no need to increment as it is initialized to 0)
 
-            // Perform some operations
-            file << "INC REG0\n";     // Increment REG0 (REG0 = 11)
-            file << "DEC REG1\n";     // Decrement REG1 (REG1 = 0)
-            file << "JNZ [label1]\n"; // Jump to label1 if REG1 != 0
+            // Perform some operations:
+            file << "INC REG0\n"; // Increment REG0 (REG0 = 11)
+            file << "DEC REG1\n"; // Decrement REG1 (REG1 = 0)
 
-            file << "INC REG2\n"; // This will be executed because REG1 was 0 and the jump did not happen
+            // Jump to 'label1' if REG1 is not zero
+            file << "JNZ [label1]\n"; // Jump to 'label1' if REG1 != 0
 
-            file << "label1:\n";  // Label1
+            // This instruction will execute since REG1 was 0
             file << "INC REG2\n"; // Increment REG2 (REG2 = 1)
 
-            // Now, we reset REG1 to 1 (we make sure it's 1 for the second jump)
-            file << "INC REG1\n"; // Set REG1 back to 1
+            // Label1 will only be reached if REG1 was non-zero
+            file << "label1:\n"; // Label1
 
+            // Increment REG2 as part of label1
+            file << "INC REG2\n"; // Increment REG2 (REG2 = 2)
+
+            // Set REG1 back to 1 for the next jump scenario
+            file << "INC REG1\n"; // Increment REG1 (REG1 = 1)
+
+            // Decrement REG0 and check if it's non-zero to jump to label2
             file << "DEC REG0\n";     // Decrement REG0 (REG0 = 10)
             file << "JNZ [label2]\n"; // Jump to label2 if REG0 != 0
 
-            file << "STORE REG1 10\n"; // This will not be executed because of the jump
+            // This will not be executed because REG0 is not zero and the jump happens
+            file << "STORE REG1 10\n"; // This will be skipped because of the jump
 
-            file << "label2:\n";  // Label2
-            file << "INC REG2\n"; // Increment REG2 (REG2 = 2)
+            // Label2 where the code jumps to after REG0 is decremented
+            file << "label2:\n"; // Label2
 
-            // Final instruction
+            // Increment REG2 as part of label2
+            file << "INC REG2\n"; // Increment REG2 (REG2 = 3)
+
+            // Final increment of REG0 (REG0 = 11)
             file << "INC REG0\n"; // Increment REG0 (REG0 = 11)
             break;
 
-        case 6:                           // Loop Implementation - Summing REG3 until 10 with REG1 controlling the jumps
-            file << "INC REG3\n";         // Initialize REG3 to 1 (instead of loading 0)
-            file << "INC REG3\n";         // Start counting up from 1 to 10
-            file << "INC REG3\n";         // Increment REG3 to 3
-            file << "INC REG3\n";         // Increment REG3 to 4
-            file << "INC REG3\n";         // Increment REG3 to 5
-            file << "INC REG3\n";         // Increment REG3 to 6
-            file << "INC REG3\n";         // Increment REG3 to 7
-            file << "INC REG3\n";         // Increment REG3 to 8
-            file << "INC REG3\n";         // Increment REG3 to 9
-            file << "INC REG3\n";         // Increment REG3 to 10
-            file << "loop_start:\n";      // Label to mark the start of the loop
-            file << "DEC REG3\n";         // Increment REG3 (REG3++)
-            file << "JNZ [loop_start]\n"; // Jump back to loop_start if REG1 != 0
+        case 6: // Loop Implementation - Summing REG3 until 10 with REG1 controlling the jumps
 
-            // Once REG3 reaches 0, the loop ends, and the next instruction executes
-            file << "INC REG3\n"; // Final increment after loop exits
+            // Initialize REG3 to 1 by incrementing it twice (REG3 = 2)
+            file << "INC REG3\n"; // Increment REG3 (REG3 = 1)
+            file << "INC REG3\n"; // Increment REG3 (REG3 = 2)
+
+            // Continue incrementing REG3 until it reaches 10
+            file << "INC REG3\n"; // Increment REG3 (REG3 = 3)
+            file << "INC REG3\n"; // Increment REG3 (REG3 = 4)
+            file << "INC REG3\n"; // Increment REG3 (REG3 = 5)
+            file << "INC REG3\n"; // Increment REG3 (REG3 = 6)
+            file << "INC REG3\n"; // Increment REG3 (REG3 = 7)
+            file << "INC REG3\n"; // Increment REG3 (REG3 = 8)
+            file << "INC REG3\n"; // Increment REG3 (REG3 = 9)
+            file << "INC REG3\n"; // Increment REG3 (REG3 = 10)
+
+            // Define the start of the loop
+            file << "loop_start:\n"; // Label marking the start of the loop
+
+            // Decrement REG3 (this will be done in the loop)
+            file << "DEC REG3\n"; // Decrement REG3 (REG3 will be decremented)
+
+            // If REG3 is not zero, jump back to 'loop_start' to continue looping
+            file << "JNZ [loop_start]\n"; // Jump back to loop_start if REG3 != 0
+
+            // Once REG3 reaches 0, the loop ends and the code below executes
+            file << "INC REG3\n"; // Increment REG3 (REG3 = 1, after the loop ends)
             break;
 
         default:
