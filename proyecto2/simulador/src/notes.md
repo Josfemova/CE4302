@@ -7,7 +7,7 @@ d. DEC REG<n> # decremento registro n
 e. JNZ [label] # salto condicional
 f. label: # Asi se usa el label
 
-## Instrucciones dentro del CPU
+## Instrucciones dentro del CPU (dentro de la lógica del CPU no hace falta para los workloads)
 
 a. LOAD <n>
 b. STORE <n>
@@ -18,4 +18,4 @@ f. label:
 
 # Uso de JNZ
 
-Jump Not Zero utiliza el Registro 1 como condición. Es decir si el registro 1 es diferente de 0 va a saltar, si es igual a 0 no se realiza el salto. En el archivo de tests.cpp se puede ver varios ejemplos del uso del JNZ, tambien de un loop creado con esta instrucción.
+Jump Not Zero utiliza el Registro 1 (REG1) como condición. Es decir si el registro 1 es diferente de 0 va a saltar, si es igual a 0 no se realiza el salto. En el archivo de tests.cpp se puede ver varios ejemplos del uso del JNZ, tambien de un loop creado con esta instrucción.

@@ -94,7 +94,7 @@ void createMockInstructionsFile(const std::string &filename, int caseNumber)
             file << "JNZ [loop_start]\n"; // Jump back to loop_start if REG1 != 0
 
             // Once REG1 reaches 0, the loop ends, and the next instruction executes
-            file << "LOAD REG3 10\n";
+            file << "INC REG3\n";
             break;
 
         default:
@@ -520,9 +520,8 @@ void testCPUWithFileLoop(int cpu_id, const std::string &mockFileName)
     cpu.executeNextInstruction();
     assert(cpu.getPC() == 6); // PC should move to the next instruction (position 13)
 
-    // Execute final instruction: LOAD REG3 10
     cpu.executeNextInstruction();
-    assert(cpu.getRegister(3) == 10); // REG3 should be 10
+    assert(cpu.getRegister(3) == 11); // REG3 should be 10
 
     // Final check: CPU state should match expected final state
     std::cout << std::format("Test {}: CPU Loop Case 6: PASSED\n", testNumber);
