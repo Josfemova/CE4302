@@ -13,8 +13,7 @@ a. LOAD <n>
 b. STORE <n>
 c. INC <n>
 d. DEC <n>
-e. JNZ <pc donde se ubica el label>
-f. label:
+e. JNZ <pc>
 
 # Uso de JNZ
 
