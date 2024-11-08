@@ -46,6 +46,7 @@ void CPU::load(int regIndex, int addr)
     {
         // TODO Implementar load desde memoria, ahorita solo hace un load del valor de addr
         registers[regIndex] = addr;
+        pc++;
     }
 }
 
@@ -54,6 +55,7 @@ void CPU::store(int regIndex, int addr)
     if (regIndex >= 0 && regIndex < registers.size())
     {
         // TODO Implementar store a memoria
+        pc++;
     }
 }
 
@@ -62,6 +64,7 @@ void CPU::inc(int regIndex)
     if (regIndex >= 0 && regIndex < registers.size())
     {
         registers[regIndex]++;
+        pc++;
     }
 }
 
@@ -70,15 +73,20 @@ void CPU::dec(int regIndex)
     if (regIndex >= 0 && regIndex < registers.size())
     {
         registers[regIndex]--;
+        pc++;
     }
 }
 
 void CPU::jnz(int jumpAddress)
 {
-    // Checks conditional register (REG1)
-    if (registers[1] == 1)
+
+    if (registers[1] != 0) // Only jump if register 1 is non-zero (as per your logic)
     {
         pc = jumpAddress;
+    }
+    else
+    {
+        pc++;
     }
 }
 
@@ -99,7 +107,6 @@ void CPU::executeNextInstruction()
     if (pc >= 0 && pc < instructionMemory.size())
     {
         decodeAndExecute(instructionMemory[pc]);
-        pc++;
     }
 }
 
@@ -130,8 +137,8 @@ void CPU::decodeAndExecute(const string &instruction)
     }
     else if (instruction.find("JNZ") == 0)
     {
-        int reg = instruction[4] - '0';
-        int jumpAddress = stoi(instruction.substr(6));
+        int jumpAddress = stoi(instruction.substr(4));
+
         jnz(jumpAddress);
     }
 }
