@@ -45,6 +45,8 @@ public:
      */
     void store(int regIndex, int addr);
 
+    void checkZeroCondition(int regIndex);
+
     /**
      * @brief Increments the value of the specified register.
      *
@@ -131,6 +133,7 @@ public:
 private:
     int id; ///< The unique ID of the CPU.
     int pc; ///< The Program Counter (PC), indicating the current instruction.
+    bool jump_flag;
     map<string, int> labels;
     vector<int64_t> registers;        ///< A vector of 4 registers (REG0, REG1, REG2, REG3), each 64 bits.
     vector<string> instructionMemory; ///< The list of instructions loaded into the CPU's instruction memory.

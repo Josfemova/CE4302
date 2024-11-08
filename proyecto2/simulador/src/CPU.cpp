@@ -6,7 +6,7 @@
 #include <stdexcept>
 
 CPU::CPU(int id, const vector<string> &instructions)
-    : id(id), pc(0), registers(4, 0), instructionMemory(instructions)
+    : id(id), pc(0), registers(4, 0), jump_flag(false), instructionMemory(instructions)
 {
     // Optionally print the initialized state
     cout << "CPU initialized with ID: " << id << endl;
@@ -38,6 +38,19 @@ vector<int64_t> CPU::getRegisters() const
     return registers;
 }
 
+void CPU::checkZeroCondition(int regIndex)
+
+{
+    if (registers[regIndex] != 0)
+    {
+        jump_flag = true;
+    }
+    else
+    {
+        jump_flag = false;
+    }
+}
+
 // Instructions that can be executed
 
 void CPU::load(int regIndex, int addr)
@@ -66,6 +79,7 @@ void CPU::inc(int regIndex)
         registers[regIndex]++;
         pc++;
     }
+    checkZeroCondition(regIndex);
 }
 
 void CPU::dec(int regIndex)
@@ -75,18 +89,20 @@ void CPU::dec(int regIndex)
         registers[regIndex]--;
         pc++;
     }
+    checkZeroCondition(regIndex);
 }
 
 void CPU::jnz(int jumpAddress)
 {
+    // Print the jump address and the current value of jump_flag
 
-    if (registers[1] != 0) // Only jump if register 1 is non-zero (as per your logic)
+    if (jump_flag)
     {
-        pc = jumpAddress;
+        pc = jumpAddress; // Jump to the specified address if jump_flag is true
     }
     else
     {
-        pc++;
+        pc++; // Otherwise, increment the program counter
     }
 }
 

@@ -15,6 +15,10 @@ c. INC <n>
 d. DEC <n>
 e. JNZ <pc>
 
+# Registros
+
+Todos los registros están inicializados en 0.
+
 # Uso de JNZ
 
-Jump Not Zero utiliza el Registro 1 (REG1) como condición. Es decir si el registro 1 es diferente de 0 va a saltar, si es igual a 0 no se realiza el salto. En el archivo de tests.cpp se puede ver varios ejemplos del uso del JNZ, tambien de un loop creado con esta instrucción.
+Jump Not Zero utiliza el registro utilizado en la ultima operación de DEC o INC. Es decir si el registro es diferente de 0 va a saltar, si es igual a 0 no se realiza el salto. En el archivo de tests.cpp se puede ver varios ejemplos del uso del JNZ, tambien de un loop creado con esta instrucción.
