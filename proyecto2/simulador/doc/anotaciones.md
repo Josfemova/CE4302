@@ -1,0 +1,2 @@
+- La memoria del caché debería estar detrás de un lock 
+- 
