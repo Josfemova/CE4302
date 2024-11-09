@@ -48,7 +48,6 @@ static const struct lws_protocols protocols[] = {
     {NULL, NULL, 0, 0} // terminator
 };
 
-// Server setup function (replaces the `main()` function in Server.cpp)
 void start_server()
 {
     struct lws_context_creation_info info;

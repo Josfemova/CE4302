@@ -1,0 +1,51 @@
+.cache {
+  width: 350px;
+  height: 290px;
+  background-color: #ffc107; /* Yellow color */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 10px;
+  border: 1px solid #333;
+  border-radius: 8px;
+  box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.cache-title {
+  font-size: 1.1rem; /* Slightly smaller */
+  color: #333;
+  margin-bottom: 8px; /* Reduced space below title */
+  text-align: center;
+}
+
+.cache-blocks {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  align-items: center;
+}
+
+.cache-block {
+  display: flex;
+  justify-content: space-between;
+  width: 95%;
+  padding: 2px 0; /* Reduced padding for a more compact layout */
+  color: #333;
+  background-color: #ffecb3; /* Light yellow for block background */
+  border-radius: 4px;
+  margin-bottom: 4px; /* Slightly reduced spacing between blocks */
+  font-size: 0.9rem; /* Smaller font for block content */
+}
+
+.cache-block-name {
+  font-weight: bold;
+  color: #333;
+  font-size: 0.9rem; /* Smaller font size */
+}
+
+.cache-block-value {
+  font-weight: normal;
+  color: #666;
+  font-size: 0.9rem; /* Smaller font size */
+}

@@ -1,0 +1,11 @@
+.memory {
+  width: 200px;
+  height: 100px;
+  background-color: #9c27b0; /* Purple color */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #333;
+  border-radius: 8px;
+  box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.2);
+}

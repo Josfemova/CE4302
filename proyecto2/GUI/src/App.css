@@ -1,42 +1,85 @@
-#root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
+/* Background settings for the entire app */
+.background {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-color: #f5f5f5; /* Light background color */
+  width: 100vw;
+  height: 100vh;
+  overflow: scroll;
+}
+
+/* Title and paragraph text settings */
+.titles_and_text {
   text-align: center;
+  margin-bottom: 20px;
 }
 
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
+.titles_and_text h1 {
+  font-size: 2rem;
+  color: #333;
+  margin: 0;
 }
 
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.titles_and_text p {
+  font-size: 1.2rem;
+  color: #555;
+  margin: 10px 0 0;
+  line-height: 1.5;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
-  }
+/* Container for system and controls sections */
+.sim_container {
+  display: flex;
+  justify-content: center;
+  width: 100%;
 }
 
-.card {
-  padding: 2em;
+.processing-elements {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-around;
+}
+.caches {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-around;
+}
+.memory-holder {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+}
+.bi-holder {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
 }
 
-.read-the-docs {
-  color: #888;
+/* System and controls widths */
+.system {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 75%;
+}
+
+.controls {
+  width: 25%;
+  background-color: #e0e0e0; /* Light gray for control section */
+  border-left: 2px solid #ccc;
+  padding: 10px;
+  box-sizing: border-box;
+}
+
+/* Statistics section styling */
+.statistics {
+  width: 100%;
+  padding: 20px;
+  background-color: #f0f8ff; /* Light blue for contrast */
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  text-align: center;
+  font-size: 1rem;
+  color: #444;
 }
