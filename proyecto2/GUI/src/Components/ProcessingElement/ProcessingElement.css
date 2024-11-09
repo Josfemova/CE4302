@@ -1,0 +1,48 @@
+.processing-element {
+  width: 200px;
+  height: 200px;
+  background-color: #4caf50; /* Green color */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 10px;
+  border: 1px solid #333;
+  border-radius: 8px;
+  box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.pe-title {
+  font-size: 1.2rem;
+  color: #fff;
+  margin-bottom: 10px;
+  text-align: center;
+}
+
+.pe-registers {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  align-items: center;
+}
+
+.pe-register {
+  display: flex;
+  justify-content: space-between;
+  width: 80%;
+  padding: 4px 0;
+  color: #333;
+  background-color: #e0e0e0;
+  border-radius: 4px;
+  margin-bottom: 5px;
+}
+
+.pe-register-name {
+  font-weight: bold;
+  color: #333;
+}
+
+.pe-register-value {
+  font-weight: normal;
+  color: #666;
+}

@@ -1,0 +1,62 @@
+/* Styling for Bus Interconnect */
+.bus-interconnect {
+  background-color: #2196f3; /* Blue color */
+  color: white;
+  padding-left: 10px;
+  padding-right: 10px;
+  padding-bottom: 10px;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.2);
+  width: 96%;
+}
+
+h1 {
+  font-size: 22px;
+  text-align: center;
+}
+
+.request-response {
+  display: flex;
+  justify-content: space-around;
+}
+
+.read-section,
+.write-section {
+  width: 45%;
+  background-color: #1976d2; /* Darker blue for read and write sections */
+  padding: 5px;
+  border-radius: 8px;
+}
+
+.read-section h3,
+.write-section h3 {
+  margin: 0;
+  font-size: 18px;
+}
+
+.read-section p,
+.write-section p {
+  margin: 1px 0;
+}
+
+.data-transmitted {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.pe-data {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  width: 100%;
+}
+
+.pe-data-item {
+  background-color: #1976d2; /* Darker blue */
+  border-radius: 8px;
+  width: 22%; /* Each PE will take up a proportional width */
+  text-align: center;
+}
