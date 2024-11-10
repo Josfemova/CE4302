@@ -1,10 +1,18 @@
 #include "Cache.hpp"
-
+#include "messages.hpp"
 #include <algorithm>
 #include <format>
 #include <iostream>
 
 int Cache::current_id = 0;
+
+Cache::Cache(Bus& bus, int id)
+    : Clocked(),
+      id{id},
+      cache{},
+      invalidations{},
+      cache_misses{},
+      bus{bus}{}
 
 Cache::Cache(Bus& bus)
     : Clocked(),
@@ -20,13 +28,13 @@ CacheLine& Cache::cacheline_check(int64_t addr) {
   int64_t index = cacheline_index(addr);
   auto& sel_cacheline = this->cache[index];
 
-  if ((addr % 8) != 0) {
-    throw 20;  // dirección debe ser alineada a 8 bytes
-  }
-
   if (sel_cacheline.tag != tag) {
     // cache miss
+    this->cache_misses+=1;
     int64_t flush_addr = cacheline_addr(sel_cacheline.tag, index);
+    sel_cacheline.state = MESIState::Invalid;
+    notify::cache_update(this->id, sel_cacheline, index);
+    this->step(); // penalización de un ciclo por el miss
     BusMessage_t request = {.type = BusMessageType::Flush,
                             .address = flush_addr,
                             .data = sel_cacheline.data,
@@ -35,8 +43,8 @@ CacheLine& Cache::cacheline_check(int64_t addr) {
                             .completed = false};
     // escribir datos de linea a reemplazar a memoria principal
     this->bus.bus_request(request);
-    sel_cacheline.state = MESIState::Invalid;
   }
+  this->step();
   return sel_cacheline;
 }
 
@@ -56,7 +64,7 @@ int64_t Cache::read_request(int64_t addr) {  // ojo, addr cuenta por byte
     cline.state =
         (request.exclusive) ? MESIState::Exclusive : MESIState::Shared;
   }
-
+  this->step(); // response delay 
   return cline.data[offset];
 }
 
@@ -94,6 +102,7 @@ void Cache::write_request(int64_t addr, int64_t value) {
 int Cache::get_id() { return this->id; }
 
 void Cache::handle_bus_message(BusMessage_t& msg) {
+  this->step();
   if (msg.master_id == this->id) {
     return;  // no hay que administrar requests propios
   }
@@ -107,6 +116,7 @@ void Cache::handle_bus_message(BusMessage_t& msg) {
     return;  // no se tiene una copia del cache
   }
 
+  auto old_cline_state = cline.state;
   switch (cline.state) {
     case MESIState::Exclusive:
       switch (msg.type) {
@@ -185,6 +195,9 @@ void Cache::handle_bus_message(BusMessage_t& msg) {
       break;
     case MESIState::Invalid:
     default:
-      return;  // Se ignora cualquier mensaje
+      break;  // Se ignora cualquier mensaje
+  }
+  if ((old_cline_state != MESIState::Invalid) && (cline.state == MESIState::Invalid)){ 
+    this->invalidations++;
   }
 }

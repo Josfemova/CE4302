@@ -6,7 +6,7 @@
 #include <stdexcept>
 
 CPU::CPU(int id, const vector<string> &instructions)
-    : id(id), pc(0), registers(4, 0), jump_flag(false), instructionMemory(instructions)
+    : Clocked(), id(id), pc(0), registers(4, 0), jump_flag(false), instructionMemory(instructions)
 {
     // Optionally print the initialized state
     cout << "CPU initialized with ID: " << id << endl;

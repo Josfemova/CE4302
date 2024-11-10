@@ -1,9 +1,11 @@
 #ifndef CE4302_CLOCK_H
 #define CE4302_CLOCK_H
+#include <atomic>
 
 class Clocked{
 private:
-    bool ticked;
+    std::atomic_bool ticked;
+protected:
     /**
      * @brief Esta es la función que llama cualquier componente clocked para
      * saber si puede dar un paso de tiempo 

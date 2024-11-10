@@ -29,12 +29,6 @@ typedef struct{
     int64_t address;
     int64_t (& data)[4];
     int master_id;
-    /// @brief solo cambia en los casos de transición M->I y M->S. Implica que 
-    /// los datos de "data" deben ser escritos a memoria principal 
-    //! Deprecado!, es más fácil simplemente no completar el request y cambiar 
-    //! y que el caché solo cambie el tipo de mensaje a "flush" 
-    // bool must_flush_to_main_memory;
-    
     /// @brief indica si un bloque es exclusivo al terminar una operación
     bool exclusive;
     bool completed;

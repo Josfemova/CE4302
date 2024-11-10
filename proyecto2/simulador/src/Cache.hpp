@@ -17,39 +17,40 @@ typedef struct {
 }CacheLine;
 
 inline int64_t cacheline_offset(int64_t addr){
-    return (addr >> 3) & 0b11; // cual de las 4 palabras de 64bits es 
+    return addr & 0b11; // cual de las 4 palabras de 64bits es 
 }
 
+// indica cual de las 4 lineas de cache se selecciona (indice para "cache")
 inline int64_t cacheline_index(int64_t addr){
-    return (addr >> 5) & 0b111;
+    return (addr >> 2) & 0b111;
 }
 
 inline int64_t cacheline_tag(int64_t addr){
-    return addr >> 8;
+    return addr >> 5;
 }
 
 inline int64_t cacheline_addr(int64_t tag, int64_t index){
-    return (tag << 8) & (index << 5);
+    return (tag << 5) & (index << 2);
 }
 
+// calcula direccion alineada a 32 bytes = 4*sizeof(int64_t)
 inline int64_t aligned32_addr(int64_t addr){
-    return addr & (~0x1F);
+    return addr & (~0b11); 
 }
-
-
 
 class Cache: public Clocked, virtual MemorySlave, virtual BusMaster{
 private:
     int id;
     CacheLine cache[8]; 
-    int invalidations;
-    int cache_misses;
     Bus& bus;
 
     static int current_id;
     CacheLine& cacheline_check(int64_t addr);
 public:
+    int invalidations;
+    int cache_misses;
     explicit Cache(Bus& bus);
+    Cache(Bus& bus, int id);
     int64_t read_request(int64_t addr) override; 
     void write_request(int64_t addr, int64_t value) override;
     

@@ -1,6 +1,7 @@
 #ifndef CPU_HPP
 #define CPU_HPP
 
+#include "Interfaces.hpp"
 #include <iostream>
 #include <vector>
 #include <string>
@@ -15,7 +16,7 @@ using namespace std;
  * instructions such as LOAD, STORE, INC, DEC, and JNZ. Instructions can be loaded from a file
  * or a vector of strings, and executed one at a time.
  */
-class CPU
+class CPU : public Clocked
 {
 public:
     /**
