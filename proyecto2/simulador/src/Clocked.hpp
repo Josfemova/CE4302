@@ -4,6 +4,7 @@
 
 class Clocked{
 private:
+    std::atomic_bool shutdown_flag;
     std::atomic_bool ticked;
 protected:
     /**
@@ -18,6 +19,7 @@ public:
      * puede dar un paso
      */
     void tick();
+    void shutdown();
 };
 
 #endif

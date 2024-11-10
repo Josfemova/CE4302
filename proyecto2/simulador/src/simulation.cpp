@@ -6,21 +6,22 @@
 #include "Interfaces.hpp"
 #include "SimpleMemory.hpp"
 #include <string>
-#include <unistd.h>
 #include <thread>
+#include <unistd.h>
 
 bool stop = false;
 #define sim_sleep() sleep(1)
 
-void execute_pe(CPU& pe){
+void execute_pe(CPU &pe)
+{
     while (!stop)
     {
         sim_sleep(); // quantum de la simulacion
         pe.executeNextInstruction();
     }
-    
 }
-void update_bus(BusInterconnect& bus){
+void update_bus(BusInterconnect &bus)
+{
     while (!stop)
     {
         sim_sleep(); // quantum de la simulacion
@@ -50,10 +51,10 @@ void start_simulation(const std::string &pe0_file, const std::string &pe1_file,
     main_mem.load_data(main_mem_file);
     bus.register_mem_slave(&main_mem, 0, simple_memory_size);
 
-    Cache cache0{bus,0};
-    Cache cache1{bus,1};
-    Cache cache2{bus,2};
-    Cache cache3{bus,3};
+    Cache cache0{bus, 0};
+    Cache cache1{bus, 1};
+    Cache cache2{bus, 2};
+    Cache cache3{bus, 3};
 
     std::vector<Clocked *> clocked_components = {
         &pe0,      &pe1,    &pe2,    &pe3,    &bus,
@@ -72,6 +73,10 @@ void start_simulation(const std::string &pe0_file, const std::string &pe1_file,
         {
             c->tick();
         }
+    }
+    for (auto c : clocked_components)
+    {
+        c->shutdown();
     }
     bus.abort_exec();
     t0.join();
