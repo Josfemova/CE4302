@@ -56,7 +56,7 @@ public:
 // similar a memory slave pero las operaciones son algo distintas
 class Bus{
 public:
-    virtual void bus_request(BusMessage_t& request)=0; 
+    virtual bool bus_request(BusMessage_t& request)=0; 
 };
 
 class BusMaster{

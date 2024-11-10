@@ -118,12 +118,14 @@ void CPU::showState() const
 }
 
 // Executes next instruction from the instruction memory
-void CPU::executeNextInstruction()
+bool CPU::executeNextInstruction()
 {
     if (pc >= 0 && pc < instructionMemory.size())
     {
         decodeAndExecute(instructionMemory[pc]);
+        return true;
     }
+    return false;
 }
 
 // Decodes and executes current instruction

@@ -5,6 +5,7 @@
 #include <vector>
 #include <list>
 #include <mutex>
+#include <atomic>
 
 enum class ArbitrationPolicy{
     FIFO, 
@@ -30,7 +31,7 @@ private:
     MemorySlaveCard* resolve_addr(int64_t addr);
     int64_t read_main_memory(int64_t addr); 
     void write_main_memory(int64_t addr, int64_t value);
-
+    std::atomic_bool abort;
 public:
     // contadores
     int invalidations;
@@ -43,8 +44,9 @@ public:
     void register_mem_slave(MemorySlave* mem_slave, int64_t start_addr, int64_t end_addr);
     void register_bus_master(BusMaster* mem_master); 
     /// @brief Corre el algoritmo de arbitraje de bus
-    void Update();
-    void bus_request(BusMessage_t& request) override; 
+    void update();
+    bool bus_request(BusMessage_t& request) override; 
+    void abort_exec();
 };
 
 

@@ -8,17 +8,18 @@ SimpleMemory::SimpleMemory(): Clocked(){}
 
 int64_t SimpleMemory::read_request(int64_t addr) {
     int index = addr;
-    this->step();
+    this->step(); // flecha de entrada
     if (index > (simple_memory_size-1)){
         throw 22;
     }else{
+        this->step(); // flecha de salida
         return this->memory[index];
     }
 } 
 
 void SimpleMemory::write_request(int64_t addr, int64_t value) {
     int index = addr;
-    this->step();
+    this->step(); // flecha de entrada
     if (index > (simple_memory_size-1)){
         throw 22;
     }else{

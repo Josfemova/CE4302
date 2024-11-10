@@ -30,8 +30,8 @@ CacheLine &Cache::cacheline_check(int64_t addr)
         this->cache_misses += 1;
         int64_t flush_addr = cacheline_addr(sel_cacheline.tag, index);
         sel_cacheline.state = MESIState::Invalid;
-        notify::cache_update(this->id, sel_cacheline, index);
         this->step(); // penalización de un ciclo por el miss
+        notify::cache_update(this->id, sel_cacheline, index);
         BusMessage_t request = {.type = BusMessageType::Flush,
                                 .address = flush_addr,
                                 .data = sel_cacheline.data,
@@ -110,7 +110,7 @@ int Cache::get_id() { return this->id; }
 
 void Cache::handle_bus_message(BusMessage_t &msg)
 {
-    this->step();
+    this->step(); // flecha del bus al cache 
     if (msg.master_id == this->id)
     {
         return; // no hay que administrar requests propios
@@ -220,4 +220,8 @@ void Cache::handle_bus_message(BusMessage_t &msg)
     {
         this->invalidations++;
     }
+    if(old_cline_state != cline.state){
+      notify::cache_update(this->id, cline, index);
+    }
+    this->step(); // flecha de vuelta al bus
 }

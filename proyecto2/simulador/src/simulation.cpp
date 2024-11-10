@@ -7,8 +7,26 @@
 #include "SimpleMemory.hpp"
 #include <string>
 #include <unistd.h>
+#include <thread>
 
 bool stop = false;
+#define sim_sleep() sleep(1)
+
+void execute_pe(CPU& pe){
+    while (!stop)
+    {
+        sim_sleep(); // quantum de la simulacion
+        pe.executeNextInstruction();
+    }
+    
+}
+void update_bus(BusInterconnect& bus){
+    while (!stop)
+    {
+        sim_sleep(); // quantum de la simulacion
+        bus.update();
+    }
+}
 
 void start_simulation(const std::string &pe0_file, const std::string &pe1_file,
                       const std::string &pe2_file, const std::string &pe3_file,
@@ -41,12 +59,23 @@ void start_simulation(const std::string &pe0_file, const std::string &pe1_file,
         &pe0,      &pe1,    &pe2,    &pe3,    &bus,
         &main_mem, &cache0, &cache1, &cache2, &cache3};
 
+    std::thread t0(execute_pe, std::ref(pe0));
+    std::thread t1(execute_pe, std::ref(pe1));
+    std::thread t2(execute_pe, std::ref(pe2));
+    std::thread t3(execute_pe, std::ref(pe3));
+    std::thread tbus(update_bus, std::ref(bus));
+
     while (!stop)
     {
-        sleep(1); // quantum de la simulacion
+        sim_sleep(); // quantum de la simulacion
         for (auto c : clocked_components)
         {
             c->tick();
         }
     }
+    bus.abort_exec();
+    t0.join();
+    t1.join();
+    t2.join();
+    t3.join();
 }

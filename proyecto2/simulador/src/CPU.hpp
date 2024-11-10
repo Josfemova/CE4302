@@ -78,7 +78,7 @@ public:
      * This function reads the next instruction in the instruction memory, decodes it,
      * and executes it. The program counter is then incremented.
      */
-    void executeNextInstruction();
+    bool executeNextInstruction();
 
     /**
      * @brief Loads instructions from a vector of strings.

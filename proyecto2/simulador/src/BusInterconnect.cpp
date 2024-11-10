@@ -18,7 +18,7 @@ void BusInterconnect::register_bus_master(BusMaster *mem_master)
     this->bus_masters.push_back(card);
 }
 
-void BusInterconnect::Update()
+void BusInterconnect::update()
 {
     bus_mutex.lock();
     if (!this->bus_active)
@@ -87,6 +87,7 @@ int64_t BusInterconnect::read_main_memory(int64_t addr)
 
 void BusInterconnect::write_main_memory(int64_t addr, int64_t value)
 {
+    this->write_reqs++;
     auto selected_slave_it = find_if(
         this->mem_slaves.begin(), this->mem_slaves.end(), [=](auto msc) -> bool
         { return (addr >= msc.start_addr) && (addr <= msc.end_addr); });
@@ -101,7 +102,7 @@ void BusInterconnect::write_main_memory(int64_t addr, int64_t value)
     }
 }
 
-void BusInterconnect::bus_request(BusMessage_t &request)
+bool BusInterconnect::bus_request(BusMessage_t &request)
 {
     bus_mutex.lock();
     this->request_queue.push_back(request.master_id);
@@ -109,26 +110,47 @@ void BusInterconnect::bus_request(BusMessage_t &request)
 
     // esperar al turno del cliente
     while (this->current_master_id != request.master_id)
-        ;
+        {
+            if(this->abort){
+                return false;
+            }
+        }
 
-    // aumentar contadores
-    if (request.type == BusMessageType::BusRdX)
-    {
-        this->invalidations++;
-    }
+    this->step(); // flecha entrante de caché
 
     //======================
     // Service request
     //======================
 
-    // Notify each bus master of the request
     notify::bus_message(request);
-    this->step();
+
+    // actualizar contadores
+    if ((request.type == BusMessageType::BusRdX) ||
+        (request.type == BusMessageType::BusUpgr))
+    {
+        invalidations++;
+    }
+    bool is_rd = false;
+    if ((request.type == BusMessageType::BusRd) ||
+        (request.type == BusMessageType::BusRdX))
+    {
+        read_reqs++;
+        is_rd = true;
+    }
+
+    if (request.type == BusMessageType::Flush)
+    {
+        write_reqs++;
+    }
+
+    // Notify each bus master of the request
     for (auto bmc : this->bus_masters)
     {
         bmc.ptr->handle_bus_message(request);
+        if(request.completed){
+            read_resp += is_rd ? 1:0;
+        }
     }
-
 
     if (request.completed == false)
     {
@@ -148,6 +170,7 @@ void BusInterconnect::bus_request(BusMessage_t &request)
             {
                 this->write_main_memory(request.address + i * 8,
                                         request.data[i]);
+                this->write_resp++;
             }
             break;
         case BusMessageType::BusUpgr:
@@ -158,12 +181,18 @@ void BusInterconnect::bus_request(BusMessage_t &request)
     }
     // no necesita hacer lock del mutex porque no hay condicion de carrera
     // posible
+    this->step(); // flecha saliente a caché
     this->bus_active = false;
+    return true;
 }
 
 BusInterconnect::BusInterconnect()
     : Clocked(), arb_policy{ArbitrationPolicy::FIFO}, current_master_index{0},
-      current_master_id{0}, bus_active{false}, invalidations{}, 
-      read_reqs{}, read_resp{}, write_reqs{}, write_resp{}
+      current_master_id{0}, bus_active{false}, invalidations{}, read_reqs{},
+      read_resp{}, write_reqs{}, write_resp{}, abort{false}
 {
+}
+
+void BusInterconnect::abort_exec(){
+    this->abort = true;
 }
