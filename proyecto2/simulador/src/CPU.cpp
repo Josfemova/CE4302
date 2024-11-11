@@ -5,10 +5,9 @@
 #include <regex>
 #include <stdexcept>
 
-CPU::CPU(int id, const vector<string> &instructions)
-    : id(id), pc(0), registers(4, 0), jump_flag(false), instructionMemory(instructions)
+CPU::CPU(int id, const vector<string> &instructions, MemorySlave *memSlave)
+    : id(id), pc(0), registers(4, 0), jump_flag(false), instructionMemory(instructions), memSlave(memSlave)
 {
-    // Optionally print the initialized state
     cout << "CPU initialized with ID: " << id << endl;
 }
 
@@ -57,8 +56,7 @@ void CPU::load(int regIndex, int addr)
 {
     if (regIndex >= 0 && regIndex < registers.size())
     {
-        // TODO Implementar load desde memoria, ahorita solo hace un load del valor de addr
-        registers[regIndex] = addr;
+        registers[regIndex] = memSlave->read_request(addr);
         pc++;
     }
 }
@@ -67,7 +65,7 @@ void CPU::store(int regIndex, int addr)
 {
     if (regIndex >= 0 && regIndex < registers.size())
     {
-        // TODO Implementar store a memoria
+        memSlave->write_request(addr, registers[regIndex]);
         pc++;
     }
 }
@@ -94,7 +92,6 @@ void CPU::dec(int regIndex)
 
 void CPU::jnz(int jumpAddress)
 {
-    // Print the jump address and the current value of jump_flag
 
     if (jump_flag)
     {
@@ -102,7 +99,17 @@ void CPU::jnz(int jumpAddress)
     }
     else
     {
-        pc++; // Otherwise, increment the program counter
+        pc++;
+    }
+}
+
+void CPU::mul(int regIndex1, int regIndex2)
+{
+    if (regIndex1 >= 0 && regIndex1 < registers.size() &&
+        regIndex2 >= 0 && regIndex2 < registers.size())
+    {
+        registers[regIndex1] *= registers[regIndex2];
+        pc++;
     }
 }
 
@@ -154,7 +161,12 @@ void CPU::decodeAndExecute(const string &instruction)
     else if (instruction.find("JNZ") == 0)
     {
         int jumpAddress = stoi(instruction.substr(4));
-
         jnz(jumpAddress);
+    }
+    else if (instruction.find("MUL") == 0)
+    {
+        int reg1 = instruction[4] - '0';
+        int reg2 = instruction[10] - '0';
+        mul(reg1, reg2);
     }
 }
