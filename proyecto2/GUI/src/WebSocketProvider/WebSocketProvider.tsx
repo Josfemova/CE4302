@@ -20,10 +20,13 @@ interface WebSocketData {
   caches: { [key: string]: { [block: string]: string } };
   busInterconnects: BusInterconnect[];
   memory: { [address: string]: string };
+  events: string[];
+  statistics: { [key: string]: string };
 }
 
 interface WebSocketContextData extends WebSocketData {
   sendMessage: (message: string) => void;
+  addEvent: (message: string) => void;
 }
 
 const WebSocketContext = createContext<WebSocketContextData | null>(null);
@@ -35,6 +38,14 @@ interface WebSocketProviderProps {
 export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
   children,
 }) => {
+  const initializeMemory = () => {
+    const memory: { [address: string]: string } = {};
+    for (let i = 0; i < 256; i++) {
+      const address = `0x${i.toString(16).padStart(4, "0").toUpperCase()}`; // Genera direcciones en formato 0x0000 - 0x00FF
+      memory[address] = "00";
+    }
+    return memory;
+  };
   const [socket, setSocket] = useState<WebSocket | null>(null);
   const [data, setData] = useState<WebSocketData>({
     processingElements: {
@@ -100,26 +111,17 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
         },
       },
     ],
-    memory: {
-      "0x0001": "00000000",
-      "0x0002": "00000000",
-      "0x0003": "00000000",
-      "0x0004": "00000000",
-      "0x0005": "00000000",
-      "0x0006": "00000000",
-      "0x0007": "00000000",
-      "0x0008": "00000000",
-      "0x0009": "00000000",
-      "0x000x": "00000000",
-      "0x000d": "00000000",
-      "0x000r": "00000000",
-      "0x000a": "00000000",
-      "0x000f": "00000000",
-      "0x000u": "00000000",
-      "0x000g": "00000000",
-      "0x000b": "00000000",
-    },
+    memory: initializeMemory(),
+    events: [],
+    statistics: {},
   });
+
+  const addEvent = (event: string) => {
+    setData((prevData) => ({
+      ...prevData,
+      events: [...prevData.events, event],
+    }));
+  };
 
   const sendMessage = (message: string) => {
     if (socket?.readyState === WebSocket.OPEN) {
@@ -297,6 +299,25 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
               memory: updatedMemory,
             };
           });
+        } else if (cmd === "event" && data) {
+          console.log(`Handling event with data: ${data}`);
+          addEvent(data);
+        } else if (cmd === "stats" && data) {
+          // Handling the @stats command
+          const statName = args; // Arg1 is the stat name
+          const statValue = data; // The value for the stat
+
+          setData((prevData) => {
+            const updatedStatistics = {
+              ...prevData.statistics,
+              [statName]: statValue,
+            };
+
+            return {
+              ...prevData,
+              statistics: updatedStatistics,
+            };
+          });
         }
       }
     };
@@ -309,7 +330,7 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
   }, []);
 
   return (
-    <WebSocketContext.Provider value={{ ...data, sendMessage }}>
+    <WebSocketContext.Provider value={{ ...data, sendMessage, addEvent }}>
       {children}
     </WebSocketContext.Provider>
   );
