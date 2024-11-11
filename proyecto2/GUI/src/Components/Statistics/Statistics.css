@@ -1,0 +1,32 @@
+.statistics-table {
+  margin: 20px;
+  padding: 10px;
+  background-color: #f4f4f4;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.statistics-table h1 {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.statistics-table table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.statistics-table th,
+.statistics-table td {
+  border: 1px solid #ccc;
+  padding: 8px;
+  text-align: left;
+}
+
+.statistics-table th {
+  background-color: #f0f0f0;
+}
+
+.statistics-table tr:nth-child(even) {
+  background-color: #f9f9f9;
+}
