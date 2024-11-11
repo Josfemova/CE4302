@@ -16,7 +16,7 @@ using namespace std;
  * instructions such as LOAD, STORE, INC, DEC, and JNZ. Instructions can be loaded from a file
  * or a vector of strings, and executed one at a time.
  */
-class CPU : public Clocked
+class CPU 
 {
 public:
     /**
@@ -25,7 +25,7 @@ public:
      * @param id The ID of the CPU (useful in multiprocessor simulations).
      * @param instructions A vector of strings representing the instructions to load into the CPU.
      */
-    CPU(int id, const vector<string> &instructions);
+    CPU(int id, const vector<string> &instructions, MemorySlave *memSlave);
 
     /**
      * @brief Loads a value into a specified register.
@@ -71,6 +71,14 @@ public:
      * @param jumpAddress The instruction index to jump to if the value of REG1 is equal to one.
      */
     void jnz(int jumpAddress);
+
+    /**
+     * @brief Multiplies the values in two registers and stores the result in the first register.
+     *
+     * @param regIndex1 The index of the destination register (0-3).
+     * @param regIndex2 The index of the source register (0-3).
+     */
+    void mul(int regIndex1, int regIndex2);
 
     /**
      * @brief Executes the next instruction in the instruction memory.
@@ -136,6 +144,7 @@ private:
     int pc; ///< The Program Counter (PC), indicating the current instruction.
     bool jump_flag;
     map<string, int> labels;
+    MemorySlave *memSlave;
     vector<int64_t> registers;        ///< A vector of 4 registers (REG0, REG1, REG2, REG3), each 64 bits.
     vector<string> instructionMemory; ///< The list of instructions loaded into the CPU's instruction memory.
 

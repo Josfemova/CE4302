@@ -73,3 +73,30 @@
 .action-button:active {
   background-color: #004085;
 }
+
+/* Controls.css */
+.events-box {
+  margin-top: 20px;
+  padding: 10px;
+  width: 90%;
+  max-height: 1000px;
+  border: 1px solid #ccc;
+  background-color: #666666;
+  border-radius: 5px;
+  overflow-y: auto;
+}
+
+.events-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.event-item {
+  padding: 5px;
+  border-bottom: 1px solid #eee;
+  margin-bottom: 5px;
+}
+
+.event-item:last-child {
+  border-bottom: none;
+}

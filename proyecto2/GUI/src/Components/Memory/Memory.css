@@ -1,11 +1,53 @@
 .memory {
-  width: 200px;
-  height: 100px;
-  background-color: #9c27b0; /* Purple color */
+  width: 95%; /* Adjusted width to accommodate more content */
+  background-color: #9c27b0;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
+  padding: 10px;
   border: 1px solid #333;
   border-radius: 8px;
   box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.memory-title {
+  font-size: 1.2rem;
+  color: #fff;
+  margin-bottom: 10px;
+  text-align: center;
+}
+
+.memory-addresses {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  align-items: center;
+}
+
+.memory-row {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.memory-address {
+  display: flex;
+  justify-content: space-between;
+  width: 8%; /* Adjust the width of each address box */
+  padding: 4px 1px;
+  color: #333;
+  background-color: #e1bee7;
+  border-radius: 4px;
+  margin-bottom: 5px;
+}
+
+.memory-address-name {
+  font-weight: bold;
+  color: #333;
+}
+
+.memory-address-value {
+  font-weight: normal;
+  color: #666;
 }

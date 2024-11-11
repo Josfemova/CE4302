@@ -30,7 +30,7 @@
   display: flex;
   justify-content: space-between;
   width: 95%;
-  padding: 2px 0; /* Reduced padding for a more compact layout */
+  padding: 2px 1px; /* Reduced padding for a more compact layout */
   color: #333;
   background-color: #ffecb3; /* Light yellow for block background */
   border-radius: 4px;
