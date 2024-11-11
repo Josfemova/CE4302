@@ -32,6 +32,7 @@ std::vector<std::string> Compiler::loadInstructionsFromFile(const std::string &f
     std::regex dec_regex(R"(DEC REG([0-3]))");
     std::regex jnz_regex(R"(JNZ \[([a-zA-Z_][a-zA-Z0-9_]*)\])");
     std::regex label_regex(R"(([a-zA-Z_][a-zA-Z0-9_]*):)");
+    std::regex mul_regex(R"(MUL REG([0-3]) REG([0-3]))");
 
     bool validInstructions = true;
 
