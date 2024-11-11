@@ -8,6 +8,7 @@ import Controls from "./Components/Controls/Controls";
 import { WebSocketProvider } from "./WebSocketProvider/WebSocketProvider";
 
 import "./App.css";
+import Statistics from "./Components/Statistics/Statistics";
 
 const App: React.FC = () => {
   return (
@@ -42,7 +43,7 @@ const App: React.FC = () => {
           </div>
         </div>
         <div className="statistics">
-          <h1>Statistics</h1>
+          <Statistics />{" "}
         </div>
       </div>
     </WebSocketProvider>
