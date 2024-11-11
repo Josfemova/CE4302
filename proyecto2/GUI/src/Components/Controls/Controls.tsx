@@ -35,7 +35,7 @@ const FilePathInput: React.FC<FilePathInputProps> = ({ peId, onSubmit }) => {
 };
 
 const Controls: React.FC = () => {
-  const { sendMessage } = useWebSocketData();
+  const { sendMessage, events } = useWebSocketData();
 
   const handleFileSubmit = (peId: number, filePath: string) => {
     console.log(`File path for PE ${peId}: ${filePath}`);
@@ -74,6 +74,20 @@ const Controls: React.FC = () => {
         <button onClick={handlePause} className="action-button">
           Pause
         </button>
+      </div>
+      <div className="events-box">
+        <h3>Events</h3>
+        <div className="events-list">
+          {events.length > 0 ? (
+            events.map((event, index) => (
+              <div key={index} className="event-item">
+                {event}
+              </div>
+            ))
+          ) : (
+            <div>No events received yet.</div>
+          )}
+        </div>
       </div>
     </div>
   );
