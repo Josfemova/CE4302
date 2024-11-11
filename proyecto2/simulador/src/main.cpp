@@ -28,6 +28,8 @@ void sendTestMessages()
         sendMessageToClient("update_interconnect,5,2,[12]");
         sendMessageToClient("update_interconnect,5,3,[12314]");
         sendMessageToClient("update_interconnect,5,4,[221]");
+        sendMessageToClient("event,0,[this is an event]");
+        sendMessageToClient("stats,Cache Misses,[69]");
 
         // Wait for the server to be ready to send messages
         std::this_thread::sleep_for(std::chrono::seconds(10));
@@ -44,6 +46,8 @@ void sendTestMessages()
         sendMessageToClient("update_interconnect,5,2,[3]");
         sendMessageToClient("update_interconnect,5,3,[314]");
         sendMessageToClient("update_interconnect,5,4,[2]");
+        sendMessageToClient("event,0,[this is an event again]");
+        sendMessageToClient("stats,Cache Hits,[420]");
     }
 }
 
