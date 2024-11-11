@@ -1,35 +1,70 @@
 #include <libwebsockets.h>
-#include <stdlib.h>
-#include <string.h>
-#include <stdio.h>
-#include <unistd.h> // For sleep()
+#include <iostream>
+#include <string>
+#include <queue>
 
-static int counter = 0;
+// Declare the global wsi (WebSocket instance)
+struct lws *global_wsi = nullptr;
 
-static int callback_counter(struct lws *wsi, enum lws_callback_reasons reason, void *user, void *in, size_t len)
+// Declare the incoming message queue to store received messages
+std::queue<std::string> incomingMessageQueue;
+
+// Send message to the WebSocket client
+void sendMessageToClient(const std::string &message)
+{
+    std::cout << "Sending message: " << message << std::endl;
+    if (global_wsi == nullptr)
+    {
+        std::cerr << "No WebSocket client connected!" << std::endl;
+        return;
+    }
+
+    // Format the message according to the required format
+    std::string formatted_message = "@" + message + "$";
+    unsigned char buf[LWS_PRE + formatted_message.size()];
+    memcpy(buf + LWS_PRE, formatted_message.c_str(), formatted_message.size());
+
+    // Send the message to the client
+    lws_write(global_wsi, buf + LWS_PRE, formatted_message.size(), LWS_WRITE_TEXT);
+}
+
+// WebSocket callback function
+static int callbackServer(struct lws *wsi, enum lws_callback_reasons reason, void *user, void *in, size_t len)
 {
     switch (reason)
     {
     case LWS_CALLBACK_ESTABLISHED:
-        // Start sending messages when a client connects
-        lws_callback_on_writable(wsi);
+        global_wsi = wsi;
+        std::cout << "Client connected!" << std::endl;
         break;
 
     case LWS_CALLBACK_SERVER_WRITEABLE:
-    {
-        // Allocate buffer with LWS_PRE extra bytes
-        unsigned char message[LWS_PRE + 32];
-        unsigned char *message_ptr = &message[LWS_PRE]; // Offset buffer by LWS_PRE
-
-        // Prepare and send the counter message to the client
-        snprintf((char *)message_ptr, 32, "Counter: %d", counter++);
-        lws_write(wsi, message_ptr, strlen((char *)message_ptr), LWS_WRITE_TEXT);
-
-        // Schedule the next writable callback after a delay
-        sleep(1); // 1-second delay
-        lws_callback_on_writable(wsi);
+        // If the WebSocket is writable, send a message
+        sendMessageToClient("Hello from server!");
+        lws_callback_on_writable(wsi); // Request further writes if necessary
         break;
-    }
+
+    case LWS_CALLBACK_RECEIVE:
+        if (in && len > 0)
+        {
+            std::string received_message(static_cast<char *>(in), len);
+            std::cout << "Received message from client: " << received_message << std::endl;
+
+            // Push to incoming queue
+            incomingMessageQueue.push(received_message);
+
+            // Send acknowledgment back to the client
+            sendMessageToClient("Received: " + received_message);
+        }
+        else
+        {
+            std::cout << "Empty or invalid message received." << std::endl;
+        }
+        break;
+
+    case LWS_CALLBACK_CLOSED:
+        std::cout << "Client disconnected!" << std::endl;
+        break;
 
     default:
         break;
@@ -40,15 +75,16 @@ static int callback_counter(struct lws *wsi, enum lws_callback_reasons reason, v
 // Define protocols
 static const struct lws_protocols protocols[] = {
     {
-        "counter_protocol", // protocol name
-        callback_counter,   // callback function
-        0,                  // per-session data size
-        0,                  // rx buffer size
+        "counter_protocol",
+        callbackServer,
+        0, // per-session data size
+        0  // rx buffer size
     },
     {NULL, NULL, 0, 0} // terminator
 };
 
-void start_server()
+// Start WebSocket server
+void startServer()
 {
     struct lws_context_creation_info info;
     memset(&info, 0, sizeof(info));
@@ -61,7 +97,7 @@ void start_server()
     struct lws_context *context = lws_create_context(&info);
     if (context == NULL)
     {
-        fprintf(stderr, "Error creating WebSocket context\n");
+        std::cerr << "Error creating WebSocket context" << std::endl;
         return;
     }
 

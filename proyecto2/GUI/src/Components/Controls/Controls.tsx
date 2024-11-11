@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import "./Controls.css";
+import { useWebSocketData } from "../../WebSocketProvider/WebSocketProvider";
 
 interface FilePathInputProps {
   peId: number;
@@ -34,20 +35,26 @@ const FilePathInput: React.FC<FilePathInputProps> = ({ peId, onSubmit }) => {
 };
 
 const Controls: React.FC = () => {
+  const { sendMessage } = useWebSocketData();
+
   const handleFileSubmit = (peId: number, filePath: string) => {
     console.log(`File path for PE ${peId}: ${filePath}`);
+    sendMessage(`@load_pe,${peId},[${filePath}]$`);
   };
 
   const handlePlay = () => {
     console.log("Play button clicked");
+    sendMessage("@play,0,[]$");
   };
 
   const handleStepping = () => {
     console.log("Stepping button clicked");
+    sendMessage("@step,0,[]$");
   };
 
   const handlePause = () => {
     console.log("Pause button clicked");
+    sendMessage("@pause,0,[]$");
   };
 
   return (
