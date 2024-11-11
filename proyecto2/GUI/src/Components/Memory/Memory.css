@@ -1,5 +1,5 @@
 .memory {
-  width: 90%; /* Adjusted width to accommodate more content */
+  width: 95%; /* Adjusted width to accommodate more content */
   background-color: #9c27b0;
   display: flex;
   flex-direction: column;
@@ -34,7 +34,7 @@
 .memory-address {
   display: flex;
   justify-content: space-between;
-  width: 22%; /* Adjust the width of each address box */
+  width: 8%; /* Adjust the width of each address box */
   padding: 4px 1px;
   color: #333;
   background-color: #e1bee7;

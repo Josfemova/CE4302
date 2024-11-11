@@ -25,8 +25,8 @@ const Memory: React.FC<MemoryProps> = ({ title }) => {
 
   const groupMemoryInChunks = (memoryEntries: [string, string | null][]) => {
     const chunkedMemory: [string, string | null][][] = [];
-    for (let i = 0; i < memoryEntries.length; i += 4) {
-      chunkedMemory.push(memoryEntries.slice(i, i + 4));
+    for (let i = 0; i < memoryEntries.length; i += 12) {
+      chunkedMemory.push(memoryEntries.slice(i, i + 12));
     }
     return chunkedMemory;
   };
