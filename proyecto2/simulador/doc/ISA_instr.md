@@ -6,6 +6,7 @@ c. INC REG<n> # incremento registro n
 d. DEC REG<n> # decremento registro n
 e. JNZ [label] # salto condicional
 f. label: # Asi se usa el label
+g. MUL REG<n1> REG<n2>:: # Multiplicación de registros
 
 ## Instrucciones dentro del CPU (dentro de la lógica del CPU no hace falta para los workloads)
 
