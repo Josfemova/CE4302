@@ -49,10 +49,10 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
   const [socket, setSocket] = useState<WebSocket | null>(null);
   const [data, setData] = useState<WebSocketData>({
     processingElements: {
+      "0": { "0": 0, "1": 0, "2": 0, "3": 0 },
       "1": { "0": 0, "1": 0, "2": 0, "3": 0 },
       "2": { "0": 0, "1": 0, "2": 0, "3": 0 },
       "3": { "0": 0, "1": 0, "2": 0, "3": 0 },
-      "4": { "0": 0, "1": 0, "2": 0, "3": 0 },
     },
     caches: {
       "0": {
