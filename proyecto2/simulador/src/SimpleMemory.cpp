@@ -23,7 +23,7 @@ void SimpleMemory::write_request(int64_t addr, int64_t value) {
     if (index > (simple_memory_size-1)){
         throw 22;
     }else{
-        notify::main_mem_write(addr, value);
+        notify::update_memory(addr, value);
         this->memory[index] = value;
     }
 }

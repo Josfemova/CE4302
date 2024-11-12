@@ -10,6 +10,15 @@ enum class MESIState{
     Modified
 };
 
+inline char mesi_state_to_char(MESIState state){
+    switch(state){
+        case MESIState::Exclusive: return 'E';
+        case MESIState::Shared: return 'S';
+        case MESIState::Modified: return  'M';
+        default: return 'I';
+    }
+}
+
 typedef struct {
     int64_t data[4]; // 32 bytes
     int64_t tag; // corresp. directa, tag es addr >> 7, offset es addr >> 5 & 0b111
@@ -38,7 +47,7 @@ inline int64_t aligned32_addr(int64_t addr){
     return addr & (~0b11); 
 }
 
-class Cache: public Clocked, virtual MemorySlave, virtual BusMaster{
+class Cache: public Clocked, public MemorySlave, public BusMaster{
 private:
     int id;
     CacheLine cache[8]; 

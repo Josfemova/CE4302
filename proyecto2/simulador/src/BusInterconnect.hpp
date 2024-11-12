@@ -20,8 +20,8 @@ private:
 
 
     ArbitrationPolicy arb_policy;
-    int current_master_index; // indica el indice de la carta del master actual del bus
-    int current_master_id; // indica el id del master actual del bus
+    std::atomic_int current_master_index; // indica el indice de la carta del master actual del bus
+    std::atomic_int current_master_id; // indica el id del master actual del bus
     bool bus_active; //  señala si el master actual desocupó el bus
     std::mutex bus_mutex;
     std::list<int> request_queue;
@@ -41,8 +41,8 @@ public:
     int write_resp;
 
     BusInterconnect();
-    void register_mem_slave(MemorySlave* mem_slave, int64_t start_addr, int64_t end_addr);
-    void register_bus_master(BusMaster* mem_master); 
+    void register_mem_slave(MemorySlave* mem_slave, int64_t start_addr, int64_t end_addr) override;
+    void register_bus_master(BusMaster* mem_master) override; 
     /// @brief Corre el algoritmo de arbitraje de bus
     void update();
     bool bus_request(BusMessage_t& request) override; 

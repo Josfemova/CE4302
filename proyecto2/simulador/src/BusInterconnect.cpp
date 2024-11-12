@@ -20,7 +20,7 @@ void BusInterconnect::register_bus_master(BusMaster *mem_master)
 
 void BusInterconnect::update()
 {
-    bus_mutex.lock();
+    std::lock_guard<std::mutex> bus_guard{bus_mutex};
     if (!this->bus_active)
     {
         // si el bus no está activo, se puede cambiar el master
@@ -66,7 +66,6 @@ void BusInterconnect::update()
             break;
         }
     }
-    bus_mutex.unlock();
 }
 
 int64_t BusInterconnect::read_main_memory(int64_t addr)
@@ -109,12 +108,19 @@ bool BusInterconnect::bus_request(BusMessage_t &request)
     bus_mutex.unlock();
 
     // esperar al turno del cliente
-    while (this->current_master_id != request.master_id)
+    bool not_ready = true;
+    while (not_ready)
+    {
         {
-            if(this->abort){
-                return false;
-            }
+            std::lock_guard<std::mutex> bus_guard{bus_mutex};
+            not_ready = this->current_master_id != request.master_id;
         }
+        this->step();
+        if (this->abort)
+        {
+            return false;
+        }
+    }
 
     this->step(); // flecha entrante de caché
 
@@ -122,7 +128,7 @@ bool BusInterconnect::bus_request(BusMessage_t &request)
     // Service request
     //======================
 
-    notify::bus_message(request);
+    notify::interconnect_event(request);
 
     // actualizar contadores
     if ((request.type == BusMessageType::BusRdX) ||
@@ -147,8 +153,9 @@ bool BusInterconnect::bus_request(BusMessage_t &request)
     for (auto bmc : this->bus_masters)
     {
         bmc.ptr->handle_bus_message(request);
-        if(request.completed){
-            read_resp += is_rd ? 1:0;
+        if (request.completed)
+        {
+            read_resp += is_rd ? 1 : 0;
         }
     }
 
@@ -193,6 +200,4 @@ BusInterconnect::BusInterconnect()
 {
 }
 
-void BusInterconnect::abort_exec(){
-    this->abort = true;
-}
+void BusInterconnect::abort_exec() { this->abort = true; }

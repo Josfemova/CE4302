@@ -9,12 +9,14 @@ int Cache::current_id = 0;
 Cache::Cache(Bus &bus, int id)
     : Clocked(), id{id}, cache{}, invalidations{}, cache_misses{}, bus{bus}
 {
+    bus.register_bus_master(this);
 }
 
 Cache::Cache(Bus &bus)
     : Clocked(), id{this->current_id++}, cache{}, invalidations{},
       cache_misses{}, bus{bus}
 {
+    bus.register_bus_master(this);
 }
 
 /// @brief retorna el indice de la linea de cache
@@ -31,7 +33,7 @@ CacheLine &Cache::cacheline_check(int64_t addr)
         int64_t flush_addr = cacheline_addr(sel_cacheline.tag, index);
         sel_cacheline.state = MESIState::Invalid;
         this->step(); // penalización de un ciclo por el miss
-        notify::cache_update(this->id, sel_cacheline, index);
+        notify::update_cache(this->id, sel_cacheline, index);
         BusMessage_t request = {.type = BusMessageType::Flush,
                                 .address = flush_addr,
                                 .data = sel_cacheline.data,
@@ -63,7 +65,7 @@ int64_t Cache::read_request(int64_t addr)
         cline.state =
             (request.exclusive) ? MESIState::Exclusive : MESIState::Shared;
         int64_t index = cacheline_index(addr);
-        notify::cache_update(this->id, cline, index);
+        notify::update_cache(this->id, cline, index);
     }
     this->step(); // flecha saliente al PE
     return cline.data[offset];
@@ -103,7 +105,7 @@ void Cache::write_request(int64_t addr, int64_t value)
     this->step(); // ciclo para que se vea resultado
     cline.data[offset] = value;
     int64_t index = cacheline_index(addr);
-    notify::cache_update(this->id, cline, index);
+    notify::update_cache(this->id, cline, index);
 }
 
 int Cache::get_id() { return this->id; }
@@ -120,13 +122,14 @@ void Cache::handle_bus_message(BusMessage_t &msg)
     int64_t tag = cacheline_tag(msg.address);
     int64_t index = cacheline_index(msg.address);
     auto &cline = this->cache[index];
-
+    //std::cout << std::format("compare tags {} {}\n",tag,tag);
     if (cline.tag != tag)
     {
         return; // no se tiene una copia del cache
     }
-
+    
     auto old_cline_state = cline.state;
+    bool flush_opt = false;
     switch (cline.state)
     {
     case MESIState::Exclusive:
@@ -135,6 +138,7 @@ void Cache::handle_bus_message(BusMessage_t &msg)
         case BusMessageType::BusRd:
             // Copiar datos de cache como respuesta (FlushOpt)
             std::copy(cline.data, cline.data + 4, msg.data);
+            flush_opt = true;
 
             // cambio de estado
             cline.state = MESIState::Shared;
@@ -144,6 +148,7 @@ void Cache::handle_bus_message(BusMessage_t &msg)
         case BusMessageType::BusRdX:
             // Copiar datos de cache como respuesta (FlushOpt)
             std::copy(cline.data, cline.data + 4, msg.data);
+            flush_opt = true;
 
             // cambio de estado
             cline.state = MESIState::Invalid;
@@ -165,6 +170,7 @@ void Cache::handle_bus_message(BusMessage_t &msg)
             if (!msg.completed)
             {
                 std::copy(cline.data, cline.data + 4, msg.data);
+            flush_opt = true;
                 msg.exclusive = false;
                 msg.completed = true;
             }
@@ -187,6 +193,7 @@ void Cache::handle_bus_message(BusMessage_t &msg)
         case BusMessageType::BusRdX:
             // Copiar datos de cache como respuesta (FlushOpt)
             std::copy(cline.data, cline.data + 4, msg.data);
+            flush_opt = true;
 
             // cambio de estado
             if (msg.type == BusMessageType::BusRdX)
@@ -221,7 +228,10 @@ void Cache::handle_bus_message(BusMessage_t &msg)
         this->invalidations++;
     }
     if(old_cline_state != cline.state){
-      notify::cache_update(this->id, cline, index);
+      notify::update_cache(this->id, cline, index);
+    }
+    if(flush_opt){
+        notify::flush_opt(msg, this->id);
     }
     this->step(); // flecha de vuelta al bus
 }

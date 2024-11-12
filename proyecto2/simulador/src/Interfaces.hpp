@@ -3,6 +3,7 @@
 
 #include "types.hpp"
 #include "Clocked.hpp"
+#include <map>
 
 
 class BusMaster;
@@ -23,6 +24,8 @@ enum class BusMessageType{
     Flush,
     /// FlusOpt no se necesita porque se administra con el "handle bus request"
 };
+
+extern std::map<BusMessageType, std::string> bus_message_type_map;
 
 typedef struct{
     BusMessageType type;
@@ -57,6 +60,8 @@ public:
 class Bus{
 public:
     virtual bool bus_request(BusMessage_t& request)=0; 
+    virtual void register_mem_slave(MemorySlave* mem_slave, int64_t start_addr, int64_t end_addr)=0;
+    virtual void register_bus_master(BusMaster* mem_master)=0; 
 };
 
 class BusMaster{
