@@ -55,7 +55,8 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
       "4": { "0": 0, "1": 0, "2": 0, "3": 0 },
     },
     caches: {
-      "1": {
+      "0": {
+        "0": "",
         "1": "",
         "2": "",
         "3": "",
@@ -63,9 +64,19 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
         "5": "",
         "6": "",
         "7": "",
-        "8": "",
+      },
+      "1": {
+        "0": "",
+        "1": "",
+        "2": "",
+        "3": "",
+        "4": "",
+        "5": "",
+        "6": "",
+        "7": "",
       },
       "2": {
+        "0": "",
         "1": "",
         "2": "",
         "3": "",
@@ -73,9 +84,9 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
         "5": "",
         "6": "",
         "7": "",
-        "8": "",
       },
       "3": {
+        "0": "",
         "1": "",
         "2": "",
         "3": "",
@@ -83,17 +94,6 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
         "5": "",
         "6": "",
         "7": "",
-        "8": "",
-      },
-      "4": {
-        "1": "",
-        "2": "",
-        "3": "",
-        "4": "",
-        "5": "",
-        "6": "",
-        "7": "",
-        "8": "",
       },
     },
     busInterconnects: [
@@ -104,10 +104,10 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
         writeRequests: "",
         writeResponses: "",
         dataTransmitted: {
+          "0": "0",
           "1": "0",
           "2": "0",
           "3": "0",
-          "4": "0",
         },
       },
     ],
