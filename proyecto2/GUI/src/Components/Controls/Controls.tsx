@@ -24,7 +24,11 @@ const FilePathInput: React.FC<FilePathInputProps> = ({ peId, onSubmit }) => {
         type="text"
         value={filePath}
         onChange={handleFileChange}
-        placeholder={`Enter file path for PE ${peId}`}
+        placeholder={
+          peId !== 100
+            ? `Enter file path for PE ${peId}`
+            : "Enter file path for memory initialization"
+        }
         className="file-path-input"
       />
       <button onClick={handleSubmit} className="submit-button">
@@ -40,6 +44,9 @@ const Controls: React.FC = () => {
   const handleFileSubmit = (peId: number, filePath: string) => {
     console.log(`File path for PE ${peId}: ${filePath}`);
     sendMessage(`@load_pe,${peId},[${filePath}]$`);
+  };
+  const handleFileSubmitMem = (peId: number, filePath: string) => {
+    sendMessage(`@lmem,0,[${filePath}]$`);
   };
 
   const handlePlay = () => {
@@ -63,6 +70,7 @@ const Controls: React.FC = () => {
         {[1, 2, 3, 4].map((peId) => (
           <FilePathInput key={peId} peId={peId} onSubmit={handleFileSubmit} />
         ))}
+        <FilePathInput key={0} peId={100} onSubmit={handleFileSubmitMem} />
       </div>
       <div className="action-buttons">
         <button onClick={handlePlay} className="action-button">
