@@ -67,7 +67,7 @@ const Controls: React.FC = () => {
   return (
     <div className="controls-container">
       <div className="file-inputs">
-        {[1, 2, 3, 4].map((peId) => (
+        {[0, 1, 2, 3].map((peId) => (
           <FilePathInput key={peId} peId={peId} onSubmit={handleFileSubmit} />
         ))}
         <FilePathInput key={0} peId={100} onSubmit={handleFileSubmitMem} />
