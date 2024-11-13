@@ -101,10 +101,9 @@ void BusInterconnect::write_main_memory(int64_t addr, int64_t value)
     }
 }
 
-bool BusInterconnect::bus_request(BusMessage_t &request)
-{
+bool BusInterconnect::request_bus_access(BusMaster* mem_master){
     bus_mutex.lock();
-    this->request_queue.push_back(request.master_id);
+    this->request_queue.push_back(mem_master->get_id());
     bus_mutex.unlock();
 
     // esperar al turno del cliente
@@ -113,7 +112,7 @@ bool BusInterconnect::bus_request(BusMessage_t &request)
     {
         {
             std::lock_guard<std::mutex> bus_guard{bus_mutex};
-            not_ready = (this->current_master_id != request.master_id) ||
+            not_ready = (this->current_master_id != mem_master->get_id()) ||
                         (!this->bus_active);
         }
         this->step();
@@ -122,7 +121,15 @@ bool BusInterconnect::bus_request(BusMessage_t &request)
             return false;
         }
     }
+    return true;
+}
 
+void BusInterconnect::yield_bus_access(){
+    this->bus_active = false;
+}
+
+bool BusInterconnect::bus_request(BusMessage_t &request)
+{
     this->step(); // flecha entrante de caché
 
     //======================
@@ -200,8 +207,8 @@ bool BusInterconnect::bus_request(BusMessage_t &request)
     return true;
 }
 
-BusInterconnect::BusInterconnect()
-    : Clocked(), arb_policy{ArbitrationPolicy::FIFO}, current_master_index{0},
+BusInterconnect::BusInterconnect(ArbitrationPolicy arb_policy)
+    : Clocked(), arb_policy{arb_policy}, current_master_index{0},
       current_master_id{0}, bus_active{false}, invalidations{}, read_reqs{},
       read_resp{}, write_reqs{}, write_resp{}, abort{false}, main_mem_reads{},
       main_mem_writes{}, pe_data_tx{}

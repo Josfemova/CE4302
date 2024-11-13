@@ -45,7 +45,7 @@ const Memory: React.FC<MemoryProps> = ({ title }) => {
           <div key={index} className="memory-row">
             {chunk.map(([addr, value]) => (
               <div key={addr} className="memory-address">
-                <span className="memory-address-name">{addr}:</span>
+                <span className="memory-address-name">0x{parseInt(addr).toString(16)}:</span>
                 <span className="memory-address-value">
                   {value !== null ? value : "Null"}{" "}
                 </span>

@@ -22,7 +22,7 @@ std::string ram_path{"/home/josfemova-rs/REPOSITORIES/CE4302/proyecto2/workloads
 bool instr_path_ready[4]={false, false, false, false};
 std::string instr_paths[4];
 
-#define sim_sleep() {usleep(100000);}
+#define sim_sleep() {usleep(60000);}
 
 Clocked sub_steppers[5];
 void execute_pe(CPU &pe)
@@ -68,7 +68,7 @@ void start_simulation()
     std::vector<std::string> instr_pe3 =
         compiler.loadInstructionsFromFile(instr_paths[3]);
 
-    BusInterconnect bus{};
+    BusInterconnect bus{ArbitrationPolicy::FIFO};
     SimpleMemory main_mem;
     main_mem.load_data(ram_path);
     bus.register_mem_slave(&main_mem, 0, simple_memory_size);
