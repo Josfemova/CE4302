@@ -98,6 +98,20 @@
   margin-bottom: 5px;
 }
 
+.event-item-req {
+  color:greenyellow;
+  padding: 5px;
+  border-bottom: 1px solid #eee;
+  margin-bottom: 5px;
+}
+
+.event-item-resp {
+  color:aquamarine;
+  padding: 5px;
+  border-bottom: 1px solid #eee;
+  margin-bottom: 5px;
+}
+
 .event-item:last-child {
   border-bottom: none;
 }

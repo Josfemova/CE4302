@@ -34,18 +34,25 @@ const Cache: React.FC<CacheProps> = ({ title, id }) => {
       <div className="cache-blocks">
         {blocks.length >= defaultBlocks
           ? blocks.slice(0, defaultBlocks).map((value, index) => (
-              <div key={index} className="cache-block">
-                <span className="cache-block-name">Block {index}:</span>
-                <span className="cache-block-value">{value}</span>
-              </div>
-            ))
+            <div key={index} className="cache-block">
+              <span className="cache-block-name">Block {index}:</span>
+              {(value.includes("State:I")) ? 
+                <span className="cache-block-value-I">{value}</span>
+                :((value.includes("State:E")) ? 
+                <span className="cache-block-value-E">{value}</span>
+                :((value.includes("State:M")) ? 
+                <span className="cache-block-value-M">{value}</span>
+                :<span className="cache-block-value">{value}</span>))
+              }
+            </div>
+          ))
           : // When not enough blocks are available, fill with "Null"
-            Array.from({ length: defaultBlocks }).map((_, index) => (
-              <div key={index} className="cache-block">
-                <span className="cache-block-name">Block {index}:</span>
-                <span className="cache-block-value"></span>
-              </div>
-            ))}
+          Array.from({ length: defaultBlocks }).map((_, index) => (
+            <div key={index} className="cache-block">
+              <span className="cache-block-name">Block {index}:</span>
+              <span className="cache-block-value"></span>
+            </div>
+          ))}
       </div>
     </div>
   );

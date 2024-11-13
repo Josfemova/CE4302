@@ -63,8 +63,8 @@ const Controls: React.FC = () => {
     console.log("Pause button clicked");
     sendMessage("@pause,0,[]$");
   };
-  
-  const handleStop= () => {
+
+  const handleStop = () => {
     console.log("Stop button clicked");
     sendMessage("@stop,0,[]$");
   };
@@ -96,9 +96,11 @@ const Controls: React.FC = () => {
         <div className="events-list">
           {events.length > 0 ? (
             events.map((event, index) => (
-              <div key={index} className="event-item">
-                {event}
-              </div>
+              event.includes("bus-req") ?
+                <div key={index} className="event-item-req">{event}</div> :
+                (event.includes("bus-resp") ?
+                    <div key={index} className="event-item-resp">{event}</div> : 
+                    <div key={index} className="event-item-req">{event}</div>)
             )).reverse()
           ) : (
             <div>No events received yet.</div>
