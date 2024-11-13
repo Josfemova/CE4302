@@ -1,12 +1,14 @@
 #include "CPU.hpp"
-#include <fstream>
-#include <sstream>
+#include "messages.hpp"
 #include <format>
+#include <fstream>
 #include <regex>
+#include <sstream>
 #include <stdexcept>
 
 CPU::CPU(int id, const vector<string> &instructions, MemorySlave *memSlave)
-    : id(id), pc(0), registers(4, 0), jump_flag(false), instructionMemory(instructions), memSlave(memSlave)
+    : id(id), pc(0), registers(4, 0), jump_flag(false),
+      instructionMemory(instructions), memSlave(memSlave)
 {
     cout << "CPU initialized with ID: " << id << endl;
 }
@@ -22,20 +24,11 @@ int64_t CPU::getRegister(int regIndex) const
     throw std::out_of_range("Register index out of bounds");
 }
 
-int CPU::getId() const
-{
-    return id;
-}
+int CPU::getId() const { return id; }
 
-int CPU::getPC() const
-{
-    return pc;
-}
+int CPU::getPC() const { return pc; }
 
-vector<int64_t> CPU::getRegisters() const
-{
-    return registers;
-}
+vector<int64_t> CPU::getRegisters() const { return registers; }
 
 void CPU::checkZeroCondition(int regIndex)
 
@@ -57,6 +50,7 @@ void CPU::load(int regIndex, int addr)
     if (regIndex >= 0 && regIndex < registers.size())
     {
         registers[regIndex] = memSlave->read_request(addr);
+        notify::update_register(this->id, regIndex, registers[regIndex]);
         pc++;
     }
 }
@@ -75,6 +69,7 @@ void CPU::inc(int regIndex)
     if (regIndex >= 0 && regIndex < registers.size())
     {
         registers[regIndex]++;
+        notify::update_register(this->id, regIndex, registers[regIndex]);
         pc++;
     }
     checkZeroCondition(regIndex);
@@ -85,6 +80,7 @@ void CPU::dec(int regIndex)
     if (regIndex >= 0 && regIndex < registers.size())
     {
         registers[regIndex]--;
+        notify::update_register(this->id, regIndex, registers[regIndex]);
         pc++;
     }
     checkZeroCondition(regIndex);
@@ -105,8 +101,8 @@ void CPU::jnz(int jumpAddress)
 
 void CPU::mul(int regIndex1, int regIndex2)
 {
-    if (regIndex1 >= 0 && regIndex1 < registers.size() &&
-        regIndex2 >= 0 && regIndex2 < registers.size())
+    if (regIndex1 >= 0 && regIndex1 < registers.size() && regIndex2 >= 0 &&
+        regIndex2 < registers.size())
     {
         registers[regIndex1] *= registers[regIndex2];
         pc++;
@@ -125,12 +121,14 @@ void CPU::showState() const
 }
 
 // Executes next instruction from the instruction memory
-void CPU::executeNextInstruction()
+bool CPU::executeNextInstruction()
 {
     if (pc >= 0 && pc < instructionMemory.size())
     {
         decodeAndExecute(instructionMemory[pc]);
+        return true;
     }
+    return false;
 }
 
 // Decodes and executes current instruction
@@ -147,6 +145,22 @@ void CPU::decodeAndExecute(const string &instruction)
         int reg = instruction[6] - '0';
         int value = stoi(instruction.substr(7));
         store(reg, value);
+    }
+    else if (instruction.find("RSTORE") == 0)
+    {
+        // RSTORE r v
+        int reg = instruction[7] - '0';
+        int reg_addr = stoi(instruction.substr(8));
+        store(reg, this->registers[reg_addr]);
+    }
+    else if (instruction.find("RLOAD") == 0)
+    {
+        // RLOAD r v
+        int reg = instruction[6] - '0';
+        int reg_addr = stoi(instruction.substr(7));
+        //std::cout<<std::format("RLOAD {} {}", reg, reg_addr);
+        //throw 23;
+        load(reg, this->registers[reg_addr]);
     }
     else if (instruction.find("INC") == 0)
     {

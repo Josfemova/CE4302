@@ -3,6 +3,7 @@
 
 #include "types.hpp"
 #include "Clocked.hpp"
+#include <map>
 
 
 class BusMaster;
@@ -24,17 +25,13 @@ enum class BusMessageType{
     /// FlusOpt no se necesita porque se administra con el "handle bus request"
 };
 
+extern std::map<BusMessageType, std::string> bus_message_type_map;
+
 typedef struct{
     BusMessageType type;
     int64_t address;
     int64_t (& data)[4];
     int master_id;
-    /// @brief solo cambia en los casos de transición M->I y M->S. Implica que 
-    /// los datos de "data" deben ser escritos a memoria principal 
-    //! Deprecado!, es más fácil simplemente no completar el request y cambiar 
-    //! y que el caché solo cambie el tipo de mensaje a "flush" 
-    // bool must_flush_to_main_memory;
-    
     /// @brief indica si un bloque es exclusivo al terminar una operación
     bool exclusive;
     bool completed;
@@ -62,7 +59,9 @@ public:
 // similar a memory slave pero las operaciones son algo distintas
 class Bus{
 public:
-    virtual void bus_request(BusMessage_t& request)=0; 
+    virtual bool bus_request(BusMessage_t& request)=0; 
+    virtual void register_mem_slave(MemorySlave* mem_slave, int64_t start_addr, int64_t end_addr)=0;
+    virtual void register_bus_master(BusMaster* mem_master)=0; 
 };
 
 class BusMaster{

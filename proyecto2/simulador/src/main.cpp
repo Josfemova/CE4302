@@ -1,4 +1,5 @@
 #include <format>
+#include "messages.hpp"
 #include <iostream>
 #include <string>
 #include "Cache.hpp"
@@ -61,7 +62,7 @@ void readIncomingMessages()
             // Fetch and print the message
             std::string message = incomingMessageQueue.front();
             std::cout << "Received message: " << message << std::endl;
-
+            handle_command(message);
             // Remove the message from the queue after processing
             incomingMessageQueue.pop();
         }
@@ -76,7 +77,7 @@ void readIncomingMessages()
 int main()
 {
     // Start the WebSocket server in the main thread
-    std::thread send_thread(sendTestMessages);
+    //std::thread send_thread(sendTestMessages);
 
     // Start the thread to read incoming messages
     std::thread read_thread(readIncomingMessages);
@@ -85,8 +86,7 @@ int main()
     startServer();
 
     // Join the threads to keep them running
-    send_thread.join();
+    //send_thread.join();
     read_thread.join();
-
     return 0;
 }

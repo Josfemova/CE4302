@@ -28,6 +28,8 @@ std::vector<std::string> Compiler::loadInstructionsFromFile(const std::string &f
     // Regular expressions
     std::regex load_regex(R"(LOAD REG([0-3]) (\d+))");
     std::regex store_regex(R"(STORE REG([0-3]) (\d+))");
+    std::regex rload_regex(R"(LOAD REG([0-3]) REG([0-3]))");
+    std::regex rstore_regex(R"(STORE REG([0-3]) REG([0-3]))");
     std::regex inc_regex(R"(INC REG([0-3]))");
     std::regex dec_regex(R"(DEC REG([0-3]))");
     std::regex jnz_regex(R"(JNZ \[([a-zA-Z_][a-zA-Z0-9_]*)\])");
@@ -82,6 +84,18 @@ std::vector<std::string> Compiler::loadInstructionsFromFile(const std::string &f
                 int reg = std::stoi(match[1].str());
                 int value = std::stoi(match[2].str());
                 instructionMemory.push_back(std::format("STORE {} {}", reg, value));
+            }
+            else if (std::regex_match(line, match, rload_regex))
+            {
+                int reg_rd = std::stoi(match[1].str());
+                int reg_addr = std::stoi(match[2].str());
+                instructionMemory.push_back(std::format("RLOAD {} {}", reg_rd, reg_addr));
+            }
+            else if (std::regex_match(line, match, rstore_regex))
+            {
+                int reg_val = std::stoi(match[1].str());
+                int reg_addr = std::stoi(match[2].str());
+                instructionMemory.push_back(std::format("RSTORE {} {}", reg_val, reg_addr));
             }
             else if (std::regex_match(line, match, inc_regex))
             {

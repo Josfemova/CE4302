@@ -63,6 +63,11 @@ const Controls: React.FC = () => {
     console.log("Pause button clicked");
     sendMessage("@pause,0,[]$");
   };
+  
+  const handleStop= () => {
+    console.log("Stop button clicked");
+    sendMessage("@stop,0,[]$");
+  };
 
   return (
     <div className="controls-container">
@@ -82,6 +87,9 @@ const Controls: React.FC = () => {
         <button onClick={handlePause} className="action-button">
           Pause
         </button>
+        <button onClick={handleStop} className="action-button">
+          Stop
+        </button>
       </div>
       <div className="events-box">
         <h3>Events</h3>
@@ -91,7 +99,7 @@ const Controls: React.FC = () => {
               <div key={index} className="event-item">
                 {event}
               </div>
-            ))
+            )).reverse()
           ) : (
             <div>No events received yet.</div>
           )}
