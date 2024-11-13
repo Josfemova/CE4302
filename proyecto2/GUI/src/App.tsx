@@ -20,16 +20,16 @@ const App: React.FC = () => {
         <div className="sim_container">
           <div className="system">
             <div className="processing-elements">
-              <ProcessingElement title="PE 1" id="0" />
-              <ProcessingElement title="PE 2" id="1" />
-              <ProcessingElement title="PE 3" id="2" />
-              <ProcessingElement title="PE 4" id="3" />
+              <ProcessingElement title="PE 0" id="0" />
+              <ProcessingElement title="PE 1" id="1" />
+              <ProcessingElement title="PE 2" id="2" />
+              <ProcessingElement title="PE 3" id="3" />
             </div>
             <div className="caches">
-              <Cache title="Cache 1" id="0" />
-              <Cache title="Cache 2" id="1" />
-              <Cache title="Cache 3" id="2" />
-              <Cache title="Cache 4" id="3" />
+              <Cache title="Cache 0" id="0" />
+              <Cache title="Cache 1" id="1" />
+              <Cache title="Cache 2" id="2" />
+              <Cache title="Cache 3" id="3" />
             </div>
             <div className="bi-holder">
               <BusInterconnect title="Bus Interconnect" id="1" />

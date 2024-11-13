@@ -42,6 +42,7 @@ CacheLine &Cache::cacheline_check(int64_t addr)
                                 .completed = false};
         // escribir datos de linea a reemplazar a memoria principal
         this->bus.bus_request(request);
+        notify::update_cache(this->id, sel_cacheline, index);
     }
     return sel_cacheline;
 }
@@ -210,6 +211,7 @@ void Cache::handle_bus_message(BusMessage_t &msg)
             // Causar flush de datos a memoria principal:
             msg.completed = false;
             msg.type = BusMessageType::Flush;
+            break;
 
         case BusMessageType::BusUpgr:
         case BusMessageType::Flush:

@@ -146,6 +146,22 @@ void CPU::decodeAndExecute(const string &instruction)
         int value = stoi(instruction.substr(7));
         store(reg, value);
     }
+    else if (instruction.find("RSTORE") == 0)
+    {
+        // RSTORE r v
+        int reg = instruction[7] - '0';
+        int reg_addr = stoi(instruction.substr(8));
+        store(reg, this->registers[reg_addr]);
+    }
+    else if (instruction.find("RLOAD") == 0)
+    {
+        // RLOAD r v
+        int reg = instruction[6] - '0';
+        int reg_addr = stoi(instruction.substr(7));
+        //std::cout<<std::format("RLOAD {} {}", reg, reg_addr);
+        //throw 23;
+        load(reg, this->registers[reg_addr]);
+    }
     else if (instruction.find("INC") == 0)
     {
         int reg = instruction[4] - '0';

@@ -44,6 +44,7 @@ void SimpleMemory::load_data(const std::string &filename){
             throw 34;
         }
         this->memory[index]=std::stol(line);
+        notify::update_memory(index, this->memory[index]);
         index++;
     }
     file.close();

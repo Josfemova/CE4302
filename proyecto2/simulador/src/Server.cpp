@@ -1,7 +1,8 @@
-#include <libwebsockets.h>
+#include <atomic>
 #include <iostream>
-#include <string>
+#include <libwebsockets.h>
 #include <queue>
+#include <string>
 
 // Declare the global wsi (WebSocket instance)
 struct lws *global_wsi = nullptr;
@@ -25,11 +26,13 @@ void sendMessageToClient(const std::string &message)
     memcpy(buf + LWS_PRE, formatted_message.c_str(), formatted_message.size());
 
     // Send the message to the client
-    lws_write(global_wsi, buf + LWS_PRE, formatted_message.size(), LWS_WRITE_TEXT);
+    lws_write(global_wsi, buf + LWS_PRE, formatted_message.size(),
+              LWS_WRITE_TEXT);
 }
 
 // WebSocket callback function
-static int callbackServer(struct lws *wsi, enum lws_callback_reasons reason, void *user, void *in, size_t len)
+static int callbackServer(struct lws *wsi, enum lws_callback_reasons reason,
+                          void *user, void *in, size_t len)
 {
     switch (reason)
     {
@@ -48,7 +51,8 @@ static int callbackServer(struct lws *wsi, enum lws_callback_reasons reason, voi
         if (in && len > 0)
         {
             std::string received_message(static_cast<char *>(in), len);
-            std::cout << "Received message from client: " << received_message << std::endl;
+            std::cout << "Received message from client: " << received_message
+                      << std::endl;
 
             // Push to incoming queue
             incomingMessageQueue.push(received_message);
@@ -75,8 +79,7 @@ static int callbackServer(struct lws *wsi, enum lws_callback_reasons reason, voi
 // Define protocols
 static const struct lws_protocols protocols[] = {
     {
-        "counter_protocol",
-        callbackServer,
+        "counter_protocol", callbackServer,
         0, // per-session data size
         0  // rx buffer size
     },

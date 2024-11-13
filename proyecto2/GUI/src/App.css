@@ -61,11 +61,11 @@
   display: flex;
   flex-direction: column;
   gap: 20px;
-  width: 75%;
+  width: 80%;
 }
 
 .controls {
-  width: 25%;
+  width: 20%;
   background-color: #e0e0e0; /* Light gray for control section */
   border-left: 2px solid #ccc;
   padding: 10px;

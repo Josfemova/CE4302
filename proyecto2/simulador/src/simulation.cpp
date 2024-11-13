@@ -5,6 +5,7 @@
 #include "Compiler.hpp"
 #include "Interfaces.hpp"
 #include "SimpleMemory.hpp"
+#include "messages.hpp"
 #include <string>
 #include <thread>
 #include <unistd.h>
@@ -21,14 +22,18 @@ std::string ram_path{"/home/josfemova-rs/REPOSITORIES/CE4302/proyecto2/workloads
 bool instr_path_ready[4]={false, false, false, false};
 std::string instr_paths[4];
 
-#define sim_sleep() {usleep(500000); while(pause_simul){}}
+#define sim_sleep() {usleep(100000);}
 
+Clocked sub_steppers[5];
 void execute_pe(CPU &pe)
 {
     while (!stop)
     {   
         sim_sleep(); // quantum de la simulacion
-        pe.executeNextInstruction();
+        if(!pe.executeNextInstruction()) break;
+        if(pause_simul){
+            sub_steppers[pe.getId()].step();
+        }
     }
 }
 
@@ -38,6 +43,9 @@ void update_bus(BusInterconnect &bus)
     {
         sim_sleep(); // quantum de la simulacion
         bus.update();
+        if(pause_simul){
+            sub_steppers[4].step();
+        }
     }
 }
 
@@ -47,7 +55,7 @@ void start_simulation()
         if(!p) return;
     }
     //if (!ram_path_ready) return;
-
+    stop=false;
     running=true;
     
     Compiler compiler;
@@ -91,9 +99,13 @@ void start_simulation()
         }
         if(pause_simul){
             stepper.step();
+            for(auto &x : sub_steppers){
+                x.tick();
+            }
         }
         
     }
+
     for (auto c : clocked_components)
     {
         c->shutdown();
@@ -103,5 +115,7 @@ void start_simulation()
     t1.join();
     t2.join();
     t3.join();
+    tbus.join();
+    notify::simulation_end(bus, cache0, cache1, cache2, cache3); 
     running=false;
 }

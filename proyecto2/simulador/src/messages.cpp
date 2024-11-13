@@ -27,8 +27,8 @@ namespace notify
     {
         char state = mesi_state_to_char(line.state);
         send_message_gui(
-            std::format("update_block,{},{},[S:{} T:{} off:{} "
-                        "v: 0x{:08x}{:08x}{:08x}{:08x}]",
+            std::format("update_block,{},{},[State:{} Tag:{} offset:{} "
+                        "value: 0x{:08x}{:08x}{:08x}{:08x}]",
                         cache_id, index, state, line.tag, index, line.data[3],
                         line.data[2], line.data[1], line.data[0]));
     }
@@ -39,15 +39,52 @@ namespace notify
     void interconnect_event(BusMessage_t &msg)
     {
         send_message_gui(std::format(
-            "event,0,[Got bus-req |c_id:{} type:{} addr:{}]", msg.master_id,
-            bus_message_type_map[msg.type], msg.address));
+            "event,0,[>>>bus-req ={}= req_id:{} addr:{}]",
+            bus_message_type_map[msg.type], msg.master_id, msg.address));
     }
     void flush_opt(BusMessage_t &msg, int responder_id)
     {
         send_message_gui(std::format(
-            "event,0,[Resp. to {}  by c_id :{}  cres_id: {} addr:{}]",
+            "event,0,[<<<bus-resp ={}= req_id {} resp_id :{} addr:{}]",
             bus_message_type_map[msg.type], msg.master_id, responder_id,
             msg.address));
+    }
+
+    void bus_interconnect_update(BusInterconnect &bus)
+    {
+        send_message_gui(
+            std::format("update_interconnect,1,0,[{}]", bus.read_reqs));
+        send_message_gui(
+            std::format("update_interconnect,2,0,[{}]", bus.read_resp));
+        send_message_gui(
+            std::format("update_interconnect,3,0,[{}]", bus.write_reqs));
+        send_message_gui(
+            std::format("update_interconnect,4,0,[{}]", bus.write_reqs));
+        // datos transmitidos a pe
+        send_message_gui(std::format("update_interconnect,5,0,[{} bytes]",
+                                     bus.pe_data_tx[0]));
+        send_message_gui(std::format("update_interconnect,5,1,[{} bytes]",
+                                     bus.pe_data_tx[1]));
+        send_message_gui(std::format("update_interconnect,5,2,[{} bytes]",
+                                     bus.pe_data_tx[2]));
+        send_message_gui(std::format("update_interconnect,5,3,[{} bytes]",
+                                     bus.pe_data_tx[3]));
+    }
+    void simulation_end(BusInterconnect &bus, const Cache &c0, const Cache &c1,
+                        const Cache &c2, const Cache &c3)
+    {
+        send_message_gui(std::format(
+            "stats,cache_misses,[cache0:{} \tcache1:{} \tcache2:{} \tcache3:{}]", c0.cache_misses,
+            c1.cache_misses, c2.cache_misses, c3.cache_misses));
+        send_message_gui(
+            std::format("stats,cache_invalidates,[cache0:{} \tcache1:{} \tcache2:{} \tcache3:{}]",
+                        c0.invalidations, c1.invalidations, c2.invalidations,
+                        c3.invalidations));
+        send_message_gui(std::format(
+            "stats,main_mem,[writes:{}  reads:{} tx_bytes:{} rx_bytes:{}]",
+            bus.main_mem_writes, bus.main_mem_reads, bus.main_mem_writes * 32,
+            bus.main_mem_reads * 32));
+        bus_interconnect_update(bus);
     }
 
 }

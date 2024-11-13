@@ -113,7 +113,8 @@ bool BusInterconnect::bus_request(BusMessage_t &request)
     {
         {
             std::lock_guard<std::mutex> bus_guard{bus_mutex};
-            not_ready = this->current_master_id != request.master_id;
+            not_ready = (this->current_master_id != request.master_id) ||
+                        (!this->bus_active);
         }
         this->step();
         if (this->abort)
@@ -142,6 +143,7 @@ bool BusInterconnect::bus_request(BusMessage_t &request)
     {
         read_reqs++;
         is_rd = true;
+        this->pe_data_tx[request.master_id] += 32; //(32 bytes)
     }
 
     if (request.type == BusMessageType::Flush)
@@ -152,8 +154,9 @@ bool BusInterconnect::bus_request(BusMessage_t &request)
     // Notify each bus master of the request
     for (auto bmc : this->bus_masters)
     {
+        bool was_complete = request.completed;
         bmc.ptr->handle_bus_message(request);
-        if (request.completed)
+        if (was_complete != request.completed)
         {
             read_resp += is_rd ? 1 : 0;
         }
@@ -169,6 +172,8 @@ bool BusInterconnect::bus_request(BusMessage_t &request)
             {
                 request.data[i] =
                     this->read_main_memory(request.address + i * 8);
+                this->main_mem_reads++;
+                this->read_resp++;
             }
             request.exclusive = true;
             break;
@@ -177,6 +182,7 @@ bool BusInterconnect::bus_request(BusMessage_t &request)
             {
                 this->write_main_memory(request.address + i * 8,
                                         request.data[i]);
+                this->main_mem_writes++;
                 this->write_resp++;
             }
             break;
@@ -186,6 +192,7 @@ bool BusInterconnect::bus_request(BusMessage_t &request)
         }
         request.completed = true;
     }
+    notify::bus_interconnect_update(*this);
     // no necesita hacer lock del mutex porque no hay condicion de carrera
     // posible
     this->step(); // flecha saliente a caché
@@ -196,7 +203,8 @@ bool BusInterconnect::bus_request(BusMessage_t &request)
 BusInterconnect::BusInterconnect()
     : Clocked(), arb_policy{ArbitrationPolicy::FIFO}, current_master_index{0},
       current_master_id{0}, bus_active{false}, invalidations{}, read_reqs{},
-      read_resp{}, write_reqs{}, write_resp{}, abort{false}
+      read_resp{}, write_reqs{}, write_resp{}, abort{false}, main_mem_reads{},
+      main_mem_writes{}, pe_data_tx{}
 {
 }
 

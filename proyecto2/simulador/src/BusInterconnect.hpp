@@ -22,7 +22,7 @@ private:
     ArbitrationPolicy arb_policy;
     std::atomic_int current_master_index; // indica el indice de la carta del master actual del bus
     std::atomic_int current_master_id; // indica el id del master actual del bus
-    bool bus_active; //  señala si el master actual desocupó el bus
+    std::atomic_bool bus_active; //  señala si el master actual desocupó el bus
     std::mutex bus_mutex;
     std::list<int> request_queue;
 
@@ -39,6 +39,9 @@ public:
     int read_resp;
     int write_reqs;
     int write_resp;
+    int pe_data_tx[4];
+    int main_mem_reads;
+    int main_mem_writes;
 
     BusInterconnect();
     void register_mem_slave(MemorySlave* mem_slave, int64_t start_addr, int64_t end_addr) override;
