@@ -200,8 +200,8 @@ bool BusInterconnect::bus_request(BusMessage_t &request)
     return true;
 }
 
-BusInterconnect::BusInterconnect()
-    : Clocked(), arb_policy{ArbitrationPolicy::FIFO}, current_master_index{0},
+BusInterconnect::BusInterconnect(ArbitrationPolicy arb_policy)
+    : Clocked(), arb_policy{arb_policy}, current_master_index{0},
       current_master_id{0}, bus_active{false}, invalidations{}, read_reqs{},
       read_resp{}, write_reqs{}, write_resp{}, abort{false}, main_mem_reads{},
       main_mem_writes{}, pe_data_tx{}

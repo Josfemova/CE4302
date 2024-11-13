@@ -43,7 +43,7 @@ public:
     int main_mem_reads;
     int main_mem_writes;
 
-    BusInterconnect();
+    explicit BusInterconnect(ArbitrationPolicy arb_policy);
     void register_mem_slave(MemorySlave* mem_slave, int64_t start_addr, int64_t end_addr) override;
     void register_bus_master(BusMaster* mem_master) override; 
     /// @brief Corre el algoritmo de arbitraje de bus
