@@ -22,7 +22,7 @@ std::string ram_path{"/home/josfemova-rs/REPOSITORIES/CE4302/proyecto2/workloads
 bool instr_path_ready[4]={false, false, false, false};
 std::string instr_paths[4];
 
-#define sim_sleep() {usleep(100000);}
+#define sim_sleep() {usleep(60000);}
 
 Clocked sub_steppers[5];
 void execute_pe(CPU &pe)

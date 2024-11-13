@@ -41,6 +41,7 @@ CacheLine &Cache::cacheline_check(int64_t addr)
                                 .exclusive = true,
                                 .completed = false};
         // escribir datos de linea a reemplazar a memoria principal
+        this->bus.request_bus_access(this);
         this->bus.bus_request(request);
         notify::update_cache(this->id, sel_cacheline, index);
     }
@@ -55,6 +56,8 @@ int64_t Cache::read_request(int64_t addr)
 
     if (cline.state == MESIState::Invalid)
     {
+        this->bus.request_bus_access(
+            this); // no procesar request hasta que bus chequee eventos
         BusMessage_t request = {.type = BusMessageType::BusRd,
                                 .address = aligned32_addr(addr),
                                 .data = cline.data,
@@ -85,6 +88,8 @@ void Cache::write_request(int64_t addr, int64_t value)
                             .exclusive = true,
                             .completed = false};
 
+    this->bus.request_bus_access(
+        this); // no procesar request hasta que bus chequee eventos
     switch (cline.state)
     {
     case MESIState::Invalid:
@@ -92,6 +97,7 @@ void Cache::write_request(int64_t addr, int64_t value)
         cline.state = MESIState::Modified;
         break;
     case MESIState::Exclusive:
+        this->bus.yield_bus_access();
         cline.state = MESIState::Modified;
         break;
     case MESIState::Shared:
@@ -101,6 +107,7 @@ void Cache::write_request(int64_t addr, int64_t value)
         break;
     case MESIState::Modified:
     default:
+        this->bus.yield_bus_access();
         break;
     }
     this->step(); // ciclo para que se vea resultado
@@ -113,7 +120,7 @@ int Cache::get_id() { return this->id; }
 
 void Cache::handle_bus_message(BusMessage_t &msg)
 {
-    this->step(); // flecha del bus al cache 
+    this->step(); // flecha del bus al cache
     if (msg.master_id == this->id)
     {
         return; // no hay que administrar requests propios
@@ -123,12 +130,12 @@ void Cache::handle_bus_message(BusMessage_t &msg)
     int64_t tag = cacheline_tag(msg.address);
     int64_t index = cacheline_index(msg.address);
     auto &cline = this->cache[index];
-    //std::cout << std::format("compare tags {} {}\n",tag,tag);
+    // std::cout << std::format("compare tags {} {}\n",tag,tag);
     if (cline.tag != tag)
     {
         return; // no se tiene una copia del cache
     }
-    
+
     auto old_cline_state = cline.state;
     bool flush_opt = false;
     switch (cline.state)
@@ -171,7 +178,7 @@ void Cache::handle_bus_message(BusMessage_t &msg)
             if (!msg.completed)
             {
                 std::copy(cline.data, cline.data + 4, msg.data);
-            flush_opt = true;
+                flush_opt = true;
                 msg.exclusive = false;
                 msg.completed = true;
             }
@@ -229,10 +236,12 @@ void Cache::handle_bus_message(BusMessage_t &msg)
     {
         this->invalidations++;
     }
-    if(old_cline_state != cline.state){
-      notify::update_cache(this->id, cline, index);
+    if (old_cline_state != cline.state)
+    {
+        notify::update_cache(this->id, cline, index);
     }
-    if(flush_opt){
+    if (flush_opt)
+    {
         notify::flush_opt(msg, this->id);
     }
     this->step(); // flecha de vuelta al bus

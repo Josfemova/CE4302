@@ -48,7 +48,9 @@ public:
     void register_bus_master(BusMaster* mem_master) override; 
     /// @brief Corre el algoritmo de arbitraje de bus
     void update();
-    bool bus_request(BusMessage_t& request) override; 
+    bool bus_request(BusMessage_t& request) override;
+    bool request_bus_access(BusMaster* mem_master) override; 
+    void yield_bus_access() override; 
     void abort_exec();
 };
 
