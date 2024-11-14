@@ -26,11 +26,11 @@ namespace notify
     void update_cache(int cache_id, const CacheLine &line, int index)
     {
         char state = mesi_state_to_char(line.state);
-        send_message_gui(
-            std::format("update_block,{},{},[State:{} Tag:{} offset:{} "
-                        "values: - - - - - - - - - {:04} | {:04} | {:04} | {:04}]",
-                        cache_id, index, state, line.tag, index, line.data[0],
-                        line.data[1], line.data[2], line.data[3]));
+        send_message_gui(std::format(
+            "update_block,{},{},[State:{} Tag:{} offset:{} "
+            "values: - - - - - - - - - {:04} | {:04} | {:04} | {:04}]",
+            cache_id, index, state, line.tag, index, line.data[0], line.data[1],
+            line.data[2], line.data[3]));
     }
     void update_memory(int64_t addr, int64_t val)
     {
@@ -70,20 +70,24 @@ namespace notify
         send_message_gui(std::format("update_interconnect,5,3,[{} bytes]",
                                      bus.pe_data_tx[3]));
     }
-    void simulation_end(BusInterconnect &bus, const Cache &c0, const Cache &c1,
-                        const Cache &c2, const Cache &c3)
+    void simulation_end(BusInterconnect &bus, uint64_t ticks, const Cache &c0,
+                        const Cache &c1, const Cache &c2, const Cache &c3)
     {
-        send_message_gui(std::format(
-            "stats,cache_misses,[cache0:{} \tcache1:{} \tcache2:{} \tcache3:{}]", c0.cache_misses,
-            c1.cache_misses, c2.cache_misses, c3.cache_misses));
         send_message_gui(
-            std::format("stats,cache_invalidates,[cache0:{} \tcache1:{} \tcache2:{} \tcache3:{}]",
+            std::format("stats,cache_misses,[cache0 =>>|{}| "
+                        "\tcache1 =>>|{}| \tcache2 =>>|{}| \tcache3 =>>|{}|]",
+                        c0.cache_misses, c1.cache_misses, c2.cache_misses,
+                        c3.cache_misses));
+        send_message_gui(
+            std::format("stats,cache_invalidates,[cache0=>>|{}| "
+                        "\tcache1 =>>|{}| \tcache2 =>>|{}| \tcache3 =>>:|{}|]",
                         c0.invalidations, c1.invalidations, c2.invalidations,
                         c3.invalidations));
         send_message_gui(std::format(
-            "stats,main_mem,[writes:{}  reads:{} tx_bytes:{} rx_bytes:{}]",
+            "stats,main_mem,[writes=>>|{}|  reads=>>|{}| tx_bytes=>>|{}| rx_bytes=>>|{}|]",
             bus.main_mem_writes, bus.main_mem_reads, bus.main_mem_writes * 32,
             bus.main_mem_reads * 32));
+        send_message_gui(std::format("stats,system_ticks,[{}]", ticks));
         bus_interconnect_update(bus);
     }
 
