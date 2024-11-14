@@ -17,10 +17,10 @@ REG1 addr vector1, REG2 addr vector 2
 |   2   | 0x1  | Anterior valor entre cantidad de PEs            |
 |   3   | 0x2  | Dir Inicio de vector 1                |
 |   4   | 0x3  | Dir Inicio de vector 2                  |
-|   5   | 0x4  | Dir de inicio de PE0               |
-|   6   | 0x5  | Dir de inicio de PE1               |
-|   7   | 0x6  | Dir de inicio de PE2               |
-|   8   | 0x7  | Dir de inicio de PE3               |
+|   5   | 0x4  |                                    |
+|   6   | 0x5  |                                    |
+|   7   | 0x6  |                                    |
+|   8   | 0x7  |                                    |
 |   9   | 0x8  | Scratch 0                           |
 |   10  | 0x9  | Scratch 1                           |
 |   11  | 0xa  | Scratch 2                           |
