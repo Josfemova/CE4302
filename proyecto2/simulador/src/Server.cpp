@@ -43,7 +43,7 @@ static int callbackServer(struct lws *wsi, enum lws_callback_reasons reason,
 
     case LWS_CALLBACK_SERVER_WRITEABLE:
         // If the WebSocket is writable, send a message
-        sendMessageToClient("Hello from server!");
+        //sendMessageToClient("Hello from server!");
         lws_callback_on_writable(wsi); // Request further writes if necessary
         break;
 

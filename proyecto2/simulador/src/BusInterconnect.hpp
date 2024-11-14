@@ -50,7 +50,7 @@ public:
     void update();
     bool bus_request(BusMessage_t& request) override;
     bool request_bus_access(BusMaster* mem_master) override; 
-    void yield_bus_access() override; 
+    void yield_bus_access(BusMaster *mem_master) override; 
     void abort_exec();
 };
 

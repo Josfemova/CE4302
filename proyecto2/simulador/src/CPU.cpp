@@ -53,6 +53,7 @@ void CPU::load(int regIndex, int addr)
         notify::update_register(this->id, regIndex, registers[regIndex]);
         pc++;
     }
+    checkZeroCondition(regIndex);
 }
 
 void CPU::store(int regIndex, int addr)
@@ -62,6 +63,7 @@ void CPU::store(int regIndex, int addr)
         memSlave->write_request(addr, registers[regIndex]);
         pc++;
     }
+    checkZeroCondition(regIndex);
 }
 
 void CPU::inc(int regIndex)

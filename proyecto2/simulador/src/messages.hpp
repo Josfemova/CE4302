@@ -1,7 +1,7 @@
-#include "Cache.hpp"
-#include <cstdint>
 #include "BusInterconnect.hpp"
+#include "Cache.hpp"
 #include <array>
+#include <cstdint>
 
 namespace notify
 {
@@ -12,8 +12,8 @@ namespace notify
     void interconnect_event(BusMessage_t &msg);
     void flush_opt(BusMessage_t &msg, int responder_id);
     void bus_interconnect_update(BusInterconnect &bus);
-    void simulation_end(BusInterconnect &bus, const Cache &c0, const Cache &c1,
-                        const Cache &c2, const Cache &c3);
+    void simulation_end(BusInterconnect &bus, uint64_t ticks, const Cache &c0,
+                        const Cache &c1, const Cache &c2, const Cache &c3);
 }
 
 void handle_command(const std::string &command);

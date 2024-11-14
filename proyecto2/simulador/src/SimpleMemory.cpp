@@ -43,7 +43,7 @@ void SimpleMemory::load_data(const std::string &filename){
             std::cerr << std::format("Demasiados valores en inicializador de mem\n", filename);
             throw 34;
         }
-        this->memory[index]=std::stol(line);
+        this->memory[index]=std::stol(line, NULL , 0);
         notify::update_memory(index, this->memory[index]);
         index++;
     }
