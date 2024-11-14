@@ -15,6 +15,7 @@
 std::atomic_bool stop = false;
 std::atomic_bool running = false;
 std::atomic_bool pause_simul = false;
+std::atomic_bool end_simul = false;
 
 Clocked stepper{};
 
@@ -29,7 +30,7 @@ std::string instr_paths[4];
     }
 
 Clocked sub_steppers[5];
-bool finished[4]={false,false,false,false};
+bool finished[4];
 void execute_pe(CPU &pe)
 {
     while (!stop)
@@ -50,7 +51,7 @@ void execute_pe(CPU &pe)
 
 void update_bus(BusInterconnect &bus)
 {
-    while (!stop)
+    while (!end_simul)
     {
         sim_sleep(); // quantum de la simulacion
         bus.update();
@@ -63,6 +64,7 @@ void update_bus(BusInterconnect &bus)
 
 void start_simulation()
 {
+    std::cout<<"Starting Simulation \n";
     for (auto p : instr_path_ready)
     {
         if (!p)
@@ -70,7 +72,13 @@ void start_simulation()
     }
     // if (!ram_path_ready) return;
     stop = false;
+    end_simul = false;
+    pause_simul = false;
     running = true;
+    finished[0] = false;
+    finished[1] = false;
+    finished[2] = false;
+    finished[3] = false;
 
     Compiler compiler;
     std::vector<std::string> instr_pe0 =
@@ -126,12 +134,15 @@ void start_simulation()
             stop=true;
         }
     }
-
     for (auto c : clocked_components)
     {
         c->shutdown();
     }
-    std::cout << "Stopped or Finished Simulation Run\n\n";
+    cache0.flush_all();
+    cache1.flush_all();
+    cache2.flush_all();
+    cache3.flush_all();
+    end_simul = true;
     bus.abort_exec();
     t0.join();
     t1.join();
@@ -139,5 +150,6 @@ void start_simulation()
     t3.join();
     tbus.join();
     notify::simulation_end(bus, ticks, cache0, cache1, cache2, cache3);
+    std::cout << "Stopped or Finished Simulation Run\n\n";
     running = false;
 }
