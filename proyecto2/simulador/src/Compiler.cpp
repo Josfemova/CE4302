@@ -137,6 +137,7 @@ std::vector<std::string> Compiler::loadInstructionsFromFile(const std::string &f
 
     if (!validInstructions)
     {
+        throw 59;
         instructionMemory.clear();
         std::cerr << "Error: No se cargaron instrucciones debido a errores de formato.\n";
         return {};

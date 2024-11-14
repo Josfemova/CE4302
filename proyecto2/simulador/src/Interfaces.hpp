@@ -63,7 +63,7 @@ public:
     virtual void register_mem_slave(MemorySlave* mem_slave, int64_t start_addr, int64_t end_addr)=0;
     virtual void register_bus_master(BusMaster* mem_master)=0; 
     virtual bool request_bus_access(BusMaster* mem_master) =0; 
-    virtual void yield_bus_access() =0; 
+    virtual void yield_bus_access(BusMaster* mem_master) =0; 
 };
 
 class BusMaster{

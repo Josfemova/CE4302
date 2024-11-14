@@ -39,7 +39,7 @@ inline int64_t cacheline_tag(int64_t addr){
 }
 
 inline int64_t cacheline_addr(int64_t tag, int64_t index){
-    return (tag << 5) & (index << 2);
+    return (tag << 5) | (index << 2);
 }
 
 // calcula direccion alineada a 32 bytes = 4*sizeof(int64_t)

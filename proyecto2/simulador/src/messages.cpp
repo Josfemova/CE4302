@@ -28,13 +28,13 @@ namespace notify
         char state = mesi_state_to_char(line.state);
         send_message_gui(
             std::format("update_block,{},{},[State:{} Tag:{} offset:{} "
-                        "value: 0x{:08x}{:08x}{:08x}{:08x}]",
-                        cache_id, index, state, line.tag, index, line.data[3],
-                        line.data[2], line.data[1], line.data[0]));
+                        "values: - - - - - - - - - {:04} | {:04} | {:04} | {:04}]",
+                        cache_id, index, state, line.tag, index, line.data[0],
+                        line.data[1], line.data[2], line.data[3]));
     }
     void update_memory(int64_t addr, int64_t val)
     {
-        send_message_gui(std::format("update_memory,{},[{}]", addr, val));
+        send_message_gui(std::format("update_memory,0x{:04X},[{}]", addr, val));
     }
     void interconnect_event(BusMessage_t &msg)
     {

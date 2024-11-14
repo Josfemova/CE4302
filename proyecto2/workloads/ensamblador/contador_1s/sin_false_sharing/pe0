@@ -1,0 +1,40 @@
+LOAD REG0 1
+LOAD REG1 4
+LOAD REG3 2
+loop:
+LOAD REG2 REG1
+INC REG1
+DEC REG2
+JNZ [not_zero]
+LOAD REG3 8
+INC REG3
+STORE REG3 8
+not_zero:
+DEC REG0
+JNZ [loop]
+wait_pe1:
+LOAD REG0 5
+JNZ [wait_pe1]
+wait_pe2:
+LOAD REG0 6
+JNZ [wait_pe2]
+wait_pe3:
+LOAD REG0 7
+JNZ [wait_pe3]
+sum_pes:
+LOAD REG0 8
+LOAD REG1 12
+LOAD REG2 16
+LOAD REG3 20
+sum_pe1:
+INC REG0
+DEC REG1
+JNZ [sum_pe1]
+sum_pe2:
+INC REG0
+DEC REG2
+JNZ [sum_pe2]
+sum_pe3:
+INC REG0
+DEC REG3
+JNZ [sum_pe3]

@@ -101,7 +101,8 @@ void BusInterconnect::write_main_memory(int64_t addr, int64_t value)
     }
 }
 
-bool BusInterconnect::request_bus_access(BusMaster* mem_master){
+bool BusInterconnect::request_bus_access(BusMaster *mem_master)
+{
     bus_mutex.lock();
     this->request_queue.push_back(mem_master->get_id());
     bus_mutex.unlock();
@@ -124,7 +125,13 @@ bool BusInterconnect::request_bus_access(BusMaster* mem_master){
     return true;
 }
 
-void BusInterconnect::yield_bus_access(){
+void BusInterconnect::yield_bus_access(BusMaster *mem_master)
+{
+
+    std::lock_guard<std::mutex> bus_guard{bus_mutex};
+    if(this->current_master_id != mem_master->get_id()){
+        throw 223;
+    }
     this->bus_active = false;
 }
 
@@ -177,21 +184,19 @@ bool BusInterconnect::bus_request(BusMessage_t &request)
         case BusMessageType::BusRdX:
             for (int i = 0; i < 4; i++)
             {
-                request.data[i] =
-                    this->read_main_memory(request.address + i * 8);
+                request.data[i] = this->read_main_memory(request.address + i);
                 this->main_mem_reads++;
-                this->read_resp++;
             }
+            this->read_resp++;
             request.exclusive = true;
             break;
         case BusMessageType::Flush:
             for (int i = 0; i < 4; i++)
             {
-                this->write_main_memory(request.address + i * 8,
-                                        request.data[i]);
+                this->write_main_memory(request.address + i, request.data[i]);
                 this->main_mem_writes++;
-                this->write_resp++;
             }
+            this->write_resp++;
             break;
         case BusMessageType::BusUpgr:
         default:
@@ -203,7 +208,6 @@ bool BusInterconnect::bus_request(BusMessage_t &request)
     // no necesita hacer lock del mutex porque no hay condicion de carrera
     // posible
     this->step(); // flecha saliente a caché
-    this->bus_active = false;
     return true;
 }
 

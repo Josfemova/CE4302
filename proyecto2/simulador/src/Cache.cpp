@@ -10,6 +10,12 @@ Cache::Cache(Bus &bus, int id)
     : Clocked(), id{id}, cache{}, invalidations{}, cache_misses{}, bus{bus}
 {
     bus.register_bus_master(this);
+    int index = 0;
+    for (const auto &l : this->cache)
+    {
+        notify::update_cache(id, l, index);
+        index++;
+    }
 }
 
 Cache::Cache(Bus &bus)
@@ -17,6 +23,12 @@ Cache::Cache(Bus &bus)
       cache_misses{}, bus{bus}
 {
     bus.register_bus_master(this);
+    int index = 0;
+    for (const auto &l : this->cache)
+    {
+        notify::update_cache(id, l, index);
+        index++;
+    }
 }
 
 /// @brief retorna el indice de la linea de cache
@@ -30,6 +42,10 @@ CacheLine &Cache::cacheline_check(int64_t addr)
     {
         // cache miss
         this->cache_misses += 1;
+        if (sel_cacheline.state == MESIState::Invalid)
+        {
+            return sel_cacheline;
+        }
         int64_t flush_addr = cacheline_addr(sel_cacheline.tag, index);
         sel_cacheline.state = MESIState::Invalid;
         this->step(); // penalización de un ciclo por el miss
@@ -41,7 +57,6 @@ CacheLine &Cache::cacheline_check(int64_t addr)
                                 .exclusive = true,
                                 .completed = false};
         // escribir datos de linea a reemplazar a memoria principal
-        this->bus.request_bus_access(this);
         this->bus.bus_request(request);
         notify::update_cache(this->id, sel_cacheline, index);
     }
@@ -49,15 +64,15 @@ CacheLine &Cache::cacheline_check(int64_t addr)
 }
 
 int64_t Cache::read_request(int64_t addr)
-{                 // ojo, addr cuenta por byte
+{
     this->step(); // flecha entrante del PE
+    this->bus.request_bus_access(
+        this); // no procesar request hasta que bus chequee eventos
     auto &cline = this->cacheline_check(addr);
     int64_t offset = cacheline_offset(addr); // que multiplo de 8 es
 
     if (cline.state == MESIState::Invalid)
     {
-        this->bus.request_bus_access(
-            this); // no procesar request hasta que bus chequee eventos
         BusMessage_t request = {.type = BusMessageType::BusRd,
                                 .address = aligned32_addr(addr),
                                 .data = cline.data,
@@ -68,16 +83,20 @@ int64_t Cache::read_request(int64_t addr)
         this->bus.bus_request(request);
         cline.state =
             (request.exclusive) ? MESIState::Exclusive : MESIState::Shared;
+        cline.tag = cacheline_tag(addr);
         int64_t index = cacheline_index(addr);
         notify::update_cache(this->id, cline, index);
     }
     this->step(); // flecha saliente al PE
+    this->bus.yield_bus_access(this);
     return cline.data[offset];
 }
 
 void Cache::write_request(int64_t addr, int64_t value)
 {
     this->step(); // flecha entrante del PE
+    this->bus.request_bus_access(
+        this); // no procesar request hasta que bus chequee eventos
     auto &cline = this->cacheline_check(addr);
     int64_t offset = cacheline_offset(addr); // que multiplo de 8 es
 
@@ -88,8 +107,6 @@ void Cache::write_request(int64_t addr, int64_t value)
                             .exclusive = true,
                             .completed = false};
 
-    this->bus.request_bus_access(
-        this); // no procesar request hasta que bus chequee eventos
     switch (cline.state)
     {
     case MESIState::Invalid:
@@ -97,7 +114,6 @@ void Cache::write_request(int64_t addr, int64_t value)
         cline.state = MESIState::Modified;
         break;
     case MESIState::Exclusive:
-        this->bus.yield_bus_access();
         cline.state = MESIState::Modified;
         break;
     case MESIState::Shared:
@@ -107,12 +123,13 @@ void Cache::write_request(int64_t addr, int64_t value)
         break;
     case MESIState::Modified:
     default:
-        this->bus.yield_bus_access();
         break;
     }
     this->step(); // ciclo para que se vea resultado
     cline.data[offset] = value;
+    cline.tag = cacheline_tag(addr);
     int64_t index = cacheline_index(addr);
+    this->bus.yield_bus_access(this);
     notify::update_cache(this->id, cline, index);
 }
 
@@ -134,6 +151,11 @@ void Cache::handle_bus_message(BusMessage_t &msg)
     if (cline.tag != tag)
     {
         return; // no se tiene una copia del cache
+    }
+
+    if (this->id == 3 && msg.address == 8)
+    {
+        std::cout << "c";
     }
 
     auto old_cline_state = cline.state;
