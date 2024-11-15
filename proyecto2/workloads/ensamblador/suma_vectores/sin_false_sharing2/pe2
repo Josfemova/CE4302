@@ -1,0 +1,59 @@
+LOAD REG1 2
+LOAD REG2 3
+LOAD REG0 1
+STORE REG0 16
+vres_calc:
+LOAD REG0 0
+LOAD REG3 3
+loop_vres_addr:
+    INC REG3
+    DEC REG0
+    JNZ [loop_vres_addr]
+    STORE REG3 17
+set_offset:
+loop_offset:
+    LOAD REG0 1
+    LOAD REG3 17
+    loop_offset_s:
+        INC REG1
+        INC REG2
+        INC REG3
+        DEC REG0
+        JNZ [loop_offset_s]
+    STORE REG3 17
+    LOAD REG3 6
+    DEC REG3
+    STORE REG3 6
+    JNZ [loop_offset]
+loop:
+    LOAD REG0 REG1
+    LOAD REG3 REG2
+    JNZ [loop_sum]
+    INC REG1
+    INC REG2
+    LOAD REG3 17
+    STORE REG0 REG3
+    INC REG3
+    STORE REG3 17
+    LOAD REG0 16
+    DEC REG0
+    STORE REG0 16
+    JNZ [loop]
+    LOAD REG0 0
+    JNZ [end]
+loop_sum:
+    INC REG0
+    DEC REG3
+    JNZ [loop_sum]
+    LOAD REG3 17
+    STORE REG0 REG3
+    INC REG3
+    STORE REG3 17
+    INC REG1
+    INC REG2
+    LOAD REG0 16
+    DEC REG0
+    STORE REG0 16
+    JNZ [loop]
+end:
+    INC REG1

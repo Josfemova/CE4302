@@ -1,24 +1,17 @@
 LOAD REG1 2
-INC REG1
 LOAD REG2 3
-INC REG2
+LOAD REG3 4
 LOAD REG0 1
-STORE REG0 9
+STORE REG0 8
 loop:
     LOAD REG0 REG1
     LOAD REG3 REG2
     JNZ [loop_sum]
     INC REG1
-    INC REG1
-    INC REG1
-    INC REG1
     INC REG2
-    INC REG2
-    INC REG2
-    INC REG2
-    LOAD REG0 9
+    LOAD REG0 8
     DEC REG0
-    STORE REG0 9
+    STORE REG0 8
     JNZ [loop]
     LOAD REG0 0
     JNZ [end]
@@ -28,16 +21,10 @@ loop_sum:
     JNZ [loop_sum]
     STORE REG0 REG1
     INC REG1
-    INC REG1
-    INC REG1
-    INC REG1
     INC REG2
-    INC REG2
-    INC REG2
-    INC REG2
-    LOAD REG0 9
+    LOAD REG0 8
     DEC REG0
-    STORE REG0 9
+    STORE REG0 8
     JNZ [loop]
 end:
     INC REG1

@@ -6,7 +6,7 @@
 #include <string>
 #include "Interfaces.hpp"
 
-constexpr int simple_memory_size{4096};
+constexpr int simple_memory_size{256};
 
 class SimpleMemory: public MemorySlave, public Clocked
 {

@@ -17,16 +17,16 @@ REG1 addr vector1, REG2 addr vector 2
 |   2   | 0x1  | Anterior valor entre cantidad de PEs            |
 |   3   | 0x2  | Dir Inicio de vector 1                |
 |   4   | 0x3  | Dir Inicio de vector 2                  |
-|   5   | 0x4  |                                    |
-|   6   | 0x5  |                                    |
-|   7   | 0x6  |                                    |
-|   8   | 0x7  |                                    |
+|   5   | 0x4  |  0 (ID PE)                         |
+|   6   | 0x5  |  1 (ID PE)                         |
+|   7   | 0x6  |  2 (ID PE)                         |
+|   8   | 0x7  |  3 (ID PE)                         |
 |   9   | 0x8  | Scratch 0                           |
-|   10  | 0x9  | Scratch 1                           |
-|   11  | 0xa  | Scratch 2                           |
+|   10  | 0x9  | Scratch 1 (puntero vres, calculado) |
+|   11  | 0xa  | Scratch 2 scratch de loop var       |
 |   12  | 0xb  | Scratch 3                           |
 |   13  | 0xc  | Scratch 4                           |
-|   14  | 0xd  | Scratch 5                           |
+|   14  | 0xd  | Scratch 5  (puntero vres, calc)     |
 |   15  | 0xe  | Scratch 6                           |
 |   16  | 0xf  | Scratch 7                          |
 |   17  | 0x10 | Scratch 8     |
@@ -55,7 +55,7 @@ in-place con cada pe sumando el mod
 ## Sin false sharing 
 
 opcion1: in place
-opcion2: suma no se guarda donde se lee 
+opcion2: suma no se guarda donde se lee, se guarda en donde termine el 2do vector
 
 - Valor PE0: 8
 - Valor PE1: 12
