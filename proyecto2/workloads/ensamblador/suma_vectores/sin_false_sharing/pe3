@@ -1,0 +1,41 @@
+LOAD REG1 2
+INC REG1
+LOAD REG2 3
+INC REG2
+LOAD REG3 7
+LOAD REG0 1
+STORE REG0 20
+loop_offset:
+    LOAD REG0 1
+    loop_offset_s:
+        INC REG1
+        INC REG2
+        DEC REG0
+        JNZ [loop_offset_s]
+    DEC REG3
+    JNZ [loop_offset]
+loop:
+    LOAD REG0 REG1
+    LOAD REG3 REG2
+    JNZ [loop_sum]
+    INC REG1
+    INC REG2
+    LOAD REG0 20
+    DEC REG0
+    STORE REG0 20
+    JNZ [loop]
+    LOAD REG0 0
+    JNZ [end]
+loop_sum:
+    INC REG0
+    DEC REG3
+    JNZ [loop_sum]
+    STORE REG0 REG1
+    INC REG1
+    INC REG2
+    LOAD REG0 20
+    DEC REG0
+    STORE REG0 20
+    JNZ [loop]
+end:
+    INC REG1

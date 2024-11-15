@@ -47,6 +47,11 @@ void SimpleMemory::load_data(const std::string &filename){
         notify::update_memory(index, this->memory[index]);
         index++;
     }
+    while(index < simple_memory_size){
+        this->memory[index]=0;
+        notify::update_memory(index, this->memory[index]);
+        index++;
+    }
     file.close();
 
 }

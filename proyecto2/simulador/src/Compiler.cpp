@@ -26,15 +26,15 @@ std::vector<std::string> Compiler::loadInstructionsFromFile(const std::string &f
     std::string line;
 
     // Regular expressions
-    std::regex load_regex(R"(LOAD REG([0-3]) (\d+))");
-    std::regex store_regex(R"(STORE REG([0-3]) (\d+))");
-    std::regex rload_regex(R"(LOAD REG([0-3]) REG([0-3]))");
-    std::regex rstore_regex(R"(STORE REG([0-3]) REG([0-3]))");
-    std::regex inc_regex(R"(INC REG([0-3]))");
-    std::regex dec_regex(R"(DEC REG([0-3]))");
-    std::regex jnz_regex(R"(JNZ \[([a-zA-Z_][a-zA-Z0-9_]*)\])");
-    std::regex label_regex(R"(([a-zA-Z_][a-zA-Z0-9_]*):)");
-    std::regex mul_regex(R"(MUL REG([0-3]) REG([0-3]))");
+    std::regex load_regex(R"(\s*LOAD REG([0-3]) (\d+))");
+    std::regex store_regex(R"(\s*STORE REG([0-3]) (\d+))");
+    std::regex rload_regex(R"(\s*LOAD REG([0-3]) REG([0-3]))");
+    std::regex rstore_regex(R"(\s*STORE REG([0-3]) REG([0-3]))");
+    std::regex inc_regex(R"(\s*INC REG([0-3]))");
+    std::regex dec_regex(R"(\s*DEC REG([0-3]))");
+    std::regex jnz_regex(R"(\s*JNZ \[([a-zA-Z_][a-zA-Z0-9_]*)\])");
+    std::regex label_regex(R"(\s*([a-zA-Z_][a-zA-Z0-9_]*):)");
+    std::regex mul_regex(R"(\s*MUL REG([0-3]) REG([0-3]))");
 
     bool validInstructions = true;
 

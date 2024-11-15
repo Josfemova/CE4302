@@ -7,7 +7,8 @@
 int Cache::current_id = 0;
 
 Cache::Cache(Bus &bus, int id)
-    : Clocked(), id{id}, cache{}, invalidations{}, cache_misses{}, bus{bus}
+    : Clocked(), id{id}, cache{}, invalidations{}, cache_misses{}, bus{bus},
+      flushed{false}
 {
     bus.register_bus_master(this);
     int index = 0;
@@ -20,7 +21,7 @@ Cache::Cache(Bus &bus, int id)
 
 Cache::Cache(Bus &bus)
     : Clocked(), id{this->current_id++}, cache{}, invalidations{},
-      cache_misses{}, bus{bus}
+      cache_misses{}, bus{bus}, flushed{false}
 {
     bus.register_bus_master(this);
     int index = 0;
@@ -267,4 +268,28 @@ void Cache::handle_bus_message(BusMessage_t &msg)
         notify::flush_opt(msg, this->id);
     }
     this->step(); // flecha de vuelta al bus
+}
+
+void Cache::flush_all()
+{
+    this->bus.request_bus_access(this);
+    int index = 0;
+    for (auto &c : this->cache)
+    {
+        if (c.state == MESIState::Exclusive || c.state == MESIState::Modified)
+        {
+            BusMessage_t request = {
+                .type = BusMessageType::Flush,
+                .address = aligned32_addr(cacheline_addr(c.tag, index)),
+                .data = c.data,
+                .master_id = this->id,
+                .exclusive = true,
+                .completed = false};
+            // escribir datos de linea a reemplazar a memoria principal
+            this->bus.bus_request(request);
+        }
+        index++;
+    }
+    this->bus.yield_bus_access(this);
+    flushed = true;
 }

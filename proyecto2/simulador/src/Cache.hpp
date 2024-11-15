@@ -58,11 +58,12 @@ private:
 public:
     int invalidations;
     int cache_misses;
+    bool flushed;
     explicit Cache(Bus& bus);
     Cache(Bus& bus, int id);
     int64_t read_request(int64_t addr) override; 
     void write_request(int64_t addr, int64_t value) override;
-    
+    void flush_all();
     // métodos de bus master 
     virtual int get_id() override;
     virtual void handle_bus_message(BusMessage_t& msg) override;
