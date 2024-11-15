@@ -90,7 +90,7 @@ void start_simulation()
     std::vector<std::string> instr_pe3 =
         compiler.loadInstructionsFromFile(instr_paths[3]);
 
-    BusInterconnect bus{ArbitrationPolicy::FIFO};
+    BusInterconnect bus{ArbitrationPolicy::RoundRobin};
     SimpleMemory main_mem;
     main_mem.load_data(ram_path);
     bus.register_mem_slave(&main_mem, 0, simple_memory_size);
