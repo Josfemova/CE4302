@@ -83,6 +83,8 @@ namespace notify
                         "\tcache1 =>>|{}| \tcache2 =>>|{}| \tcache3 =>>:|{}|]",
                         c0.invalidations, c1.invalidations, c2.invalidations,
                         c3.invalidations));
+        send_message_gui(
+            std::format("stats,bus_invalidations,[{}]", bus.invalidations));
         send_message_gui(std::format(
             "stats,main_mem,[writes=>>|{}|  reads=>>|{}| tx_bytes=>>|{}| rx_bytes=>>|{}|]",
             bus.main_mem_writes, bus.main_mem_reads, bus.main_mem_writes * 32,
