@@ -16,7 +16,7 @@ using namespace std;
  * instructions such as LOAD, STORE, INC, DEC, and JNZ. Instructions can be loaded from a file
  * or a vector of strings, and executed one at a time.
  */
-class CPU : public Clocked
+class CPU 
 {
 public:
     /**
@@ -86,7 +86,7 @@ public:
      * This function reads the next instruction in the instruction memory, decodes it,
      * and executes it. The program counter is then incremented.
      */
-    void executeNextInstruction();
+    bool executeNextInstruction();
 
     /**
      * @brief Loads instructions from a vector of strings.

@@ -1,0 +1,3 @@
+REG0 contiene la dirección del PE
+REG1 contiene el valor de n (cantidad de incrementos) para ese PE
+REG2 contiene el conteo de 1s

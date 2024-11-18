@@ -26,7 +26,7 @@ const ProcessingElement: React.FC<ProcessingElementProps> = ({ title, id }) => {
     }
   }, [webSocketData, id]);
 
-  const defaultRegisters = ["REG0", "REG1", "REG2", "REG3"];
+  const defaultRegisters = ["REG 0", "REG 1", "REG 2", "REG 3"];
 
   return (
     <div className="processing-element">
@@ -35,7 +35,7 @@ const ProcessingElement: React.FC<ProcessingElementProps> = ({ title, id }) => {
         {Object.entries(registers).length > 0
           ? Object.entries(registers).map(([reg, value]) => (
               <div key={reg} className="pe-register">
-                <span className="pe-register-name">{reg}:</span>
+                <span className="pe-register-name">REG{reg}:</span>
                 <span className="pe-register-value">
                   {value !== null ? value : "Null"}
                 </span>

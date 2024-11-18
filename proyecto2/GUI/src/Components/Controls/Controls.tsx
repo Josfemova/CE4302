@@ -24,7 +24,11 @@ const FilePathInput: React.FC<FilePathInputProps> = ({ peId, onSubmit }) => {
         type="text"
         value={filePath}
         onChange={handleFileChange}
-        placeholder={`Enter file path for PE ${peId}`}
+        placeholder={
+          peId !== 100
+            ? `Enter file path for PE ${peId}`
+            : "Enter file path for memory initialization"
+        }
         className="file-path-input"
       />
       <button onClick={handleSubmit} className="submit-button">
@@ -40,6 +44,9 @@ const Controls: React.FC = () => {
   const handleFileSubmit = (peId: number, filePath: string) => {
     console.log(`File path for PE ${peId}: ${filePath}`);
     sendMessage(`@load_pe,${peId},[${filePath}]$`);
+  };
+  const handleFileSubmitMem = (peId: number, filePath: string) => {
+    sendMessage(`@lmem,0,[${filePath}]$`);
   };
 
   const handlePlay = () => {
@@ -57,12 +64,18 @@ const Controls: React.FC = () => {
     sendMessage("@pause,0,[]$");
   };
 
+  const handleStop = () => {
+    console.log("Stop button clicked");
+    sendMessage("@stop,0,[]$");
+  };
+
   return (
     <div className="controls-container">
       <div className="file-inputs">
-        {[1, 2, 3, 4].map((peId) => (
+        {[0, 1, 2, 3].map((peId) => (
           <FilePathInput key={peId} peId={peId} onSubmit={handleFileSubmit} />
         ))}
+        <FilePathInput key={0} peId={100} onSubmit={handleFileSubmitMem} />
       </div>
       <div className="action-buttons">
         <button onClick={handlePlay} className="action-button">
@@ -74,16 +87,21 @@ const Controls: React.FC = () => {
         <button onClick={handlePause} className="action-button">
           Pause
         </button>
+        <button onClick={handleStop} className="action-button">
+          Stop
+        </button>
       </div>
       <div className="events-box">
         <h3>Events</h3>
         <div className="events-list">
           {events.length > 0 ? (
             events.map((event, index) => (
-              <div key={index} className="event-item">
-                {event}
-              </div>
-            ))
+              event.includes("bus-req") ?
+                <div key={index} className="event-item-req">{event}</div> :
+                (event.includes("bus-resp") ?
+                    <div key={index} className="event-item-resp">{event}</div> : 
+                    <div key={index} className="event-item-req">{event}</div>)
+            )).reverse()
           ) : (
             <div>No events received yet.</div>
           )}

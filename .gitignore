@@ -230,7 +230,6 @@ output_files
 .sopc_builder
 sopc_builder_log.txt
 nios_system_log.txt
-*.html
 *.bsf
 *.ptf.*
 .metadata
