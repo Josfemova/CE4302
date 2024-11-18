@@ -20,7 +20,7 @@ Un solo PE cuenta todas las instancias.
 |   6   | 0x5  | Dir de inicio de PE1               |
 |   7   | 0x6  | Dir de inicio de PE2               |
 |   8   | 0x7  | Dir de inicio de PE3               |
-|   9   | 0x8  | Scratch 0                           |
+|   9   | 0x8  | Scratch 0 (Resultado)               |
 |   10  | 0x9  | Scratch 1                           |
 |   11  | 0xa  | Scratch 2                           |
 |   12  | 0xb  | Scratch 3                           |

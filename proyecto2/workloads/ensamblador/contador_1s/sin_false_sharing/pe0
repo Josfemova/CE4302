@@ -38,3 +38,4 @@ sum_pe3:
 INC REG0
 DEC REG3
 JNZ [sum_pe3]
+STORE REG0 8
